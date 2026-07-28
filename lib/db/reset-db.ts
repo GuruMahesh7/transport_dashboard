@@ -16,16 +16,17 @@ async function main() {
   const db = drizzle(sql);
 
   console.log("Cleaning database...");
+  console.log("Cleaning")
 
   try {
     // Truncate tables
-    try { await sql`TRUNCATE TABLE "audit_logs" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "parcel_status_history" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "parcels" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "complaints" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "items" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "staff" CASCADE;`; } catch(e) {}
-    try { await sql`TRUNCATE TABLE "hubs" CASCADE;`; } catch(e) {}
+    try { await sql`TRUNCATE TABLE "audit_logs" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "parcel_status_history" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "parcels" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "complaints" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "items" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "staff" CASCADE;`; } catch (e) { }
+    try { await sql`TRUNCATE TABLE "hubs" CASCADE;`; } catch (e) { }
 
     console.log("Seeding base data...");
 
