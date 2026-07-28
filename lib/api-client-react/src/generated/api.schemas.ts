@@ -84,11 +84,7 @@ export interface Parcel {
   /** @nullable */
   senderEmail?: string | null;
   senderAddress?: string;
-  receiverName: string;
-  receiverPhone: string;
   /** @nullable */
-  receiverEmail?: string | null;
-  receiverAddress?: string;
   numBoxes: number;
   weightKg: number;
   itemId: number;
@@ -136,11 +132,7 @@ export interface ParcelDetail {
   /** @nullable */
   senderEmail?: string | null;
   senderAddress?: string;
-  receiverName: string;
-  receiverPhone: string;
   /** @nullable */
-  receiverEmail?: string | null;
-  receiverAddress?: string;
   numBoxes: number;
   weightKg: number;
   itemId: number;
@@ -176,10 +168,6 @@ export interface ParcelInput {
   senderPhone: string;
   senderEmail?: string;
   senderAddress: string;
-  receiverName: string;
-  receiverPhone: string;
-  receiverEmail?: string;
-  receiverAddress: string;
   numBoxes: number;
   weightKg: number;
   itemId: number;
@@ -193,10 +181,6 @@ export interface ParcelUpdate {
   senderPhone?: string;
   senderEmail?: string;
   senderAddress?: string;
-  receiverName?: string;
-  receiverPhone?: string;
-  receiverEmail?: string;
-  receiverAddress?: string;
   numBoxes?: number;
   weightKg?: number;
   itemId?: number;

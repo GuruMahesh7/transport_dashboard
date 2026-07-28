@@ -1,9 +1,8 @@
 export async function sendParcelEmailNotification(parcel: any, status: string) {
-  const { awbNumber, senderName, senderEmail, receiverName, receiverEmail } = parcel;
+  const { awbNumber, senderName, senderEmail } = parcel;
 
   const recipients = [];
   if (senderEmail) recipients.push(senderEmail);
-  if (receiverEmail) recipients.push(receiverEmail);
 
   if (recipients.length === 0) {
     console.log(`No emails provided for parcel ${awbNumber}, skipping notification.`);
@@ -24,7 +23,7 @@ export async function sendParcelEmailNotification(parcel: any, status: string) {
     html = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
         <h2 style="color: #4F46E5;">Parcel Status Update</h2>
-        <p>Hello ${senderName} / ${receiverName},</p>
+        <p>Hello ${senderName},</p>
         <p>Your parcel with AWB Number <strong>${awbNumber}</strong> has reached the destination hub.</p>
         <p>Thank you for choosing Transport Manager!</p>
       </div>
@@ -34,7 +33,7 @@ export async function sendParcelEmailNotification(parcel: any, status: string) {
     html = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
         <h2 style="color: #10B981;">Parcel Status Update</h2>
-        <p>Hello ${senderName} / ${receiverName},</p>
+        <p>Hello ${senderName},</p>
         <p>Your parcel with AWB Number <strong>${awbNumber}</strong> has been successfully delivered and received by the receiver.</p>
         <p>Thank you for choosing Transport Manager!</p>
       </div>
@@ -44,7 +43,7 @@ export async function sendParcelEmailNotification(parcel: any, status: string) {
     html = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
         <h2 style="color: #F59E0B;">Parcel Status Update</h2>
-        <p>Hello ${senderName} / ${receiverName},</p>
+        <p>Hello ${senderName},</p>
         <p>Your parcel with AWB Number <strong>${awbNumber}</strong> has been dispatched and is currently in transit towards its destination.</p>
         <p>Thank you for choosing Transport Manager!</p>
       </div>
@@ -54,7 +53,7 @@ export async function sendParcelEmailNotification(parcel: any, status: string) {
     html = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
         <h2 style="color: #3B82F6;">Parcel Booking Confirmed</h2>
-        <p>Hello ${senderName} / ${receiverName},</p>
+        <p>Hello ${senderName},</p>
         <p>Your parcel with AWB Number <strong>${awbNumber}</strong> has been successfully booked.</p>
         <p>Thank you for choosing Transport Manager!</p>
       </div>
