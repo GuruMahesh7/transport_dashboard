@@ -89,9 +89,8 @@ export default function SearchPage() {
                       {p.currentStatus.replace(/_/g, " ")}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-1 text-sm">
+                  <div className="space-y-1 text-sm">
                     <div><span className="text-muted-foreground">Sender:</span> {p.senderName} ({p.senderPhone})</div>
-                    <div><span className="text-muted-foreground">Receiver:</span> {p.receiverName} ({p.receiverPhone})</div>
                     <div><span className="text-muted-foreground">Destination:</span> {p.destinationHubCode}</div>
                     <div><span className="text-muted-foreground">Date:</span> {new Date(p.createdAt).toLocaleDateString()}</div>
                   </div>

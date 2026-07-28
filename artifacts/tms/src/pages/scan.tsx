@@ -165,7 +165,7 @@ export default function ScanPage() {
             </div>
             <div className="text-sm space-y-1 border rounded-md p-3 bg-muted/30">
               <p><span className="text-muted-foreground">Sender:</span> {scanResult.parcel.senderName} ({scanResult.parcel.senderPhone})</p>
-              <p><span className="text-muted-foreground">Receiver:</span> {scanResult.parcel.receiverName} ({scanResult.parcel.receiverPhone})</p>
+
               <p><span className="text-muted-foreground">Route:</span> {scanResult.parcel.sourceHubCode} → {scanResult.parcel.destinationHubCode}</p>
             </div>
             <Button className="w-full" onClick={reset} data-testid="button-scan-another">

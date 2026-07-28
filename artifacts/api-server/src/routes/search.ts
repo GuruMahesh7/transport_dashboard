@@ -13,7 +13,7 @@ router.get("/search", requireAuth, async (req, res) => {
     conditions.push(ilike(parcelsTable.awbNumber, `%${q}%`));
   }
   if (phone) {
-    conditions.push(or(ilike(parcelsTable.senderPhone, `%${phone}%`), ilike(parcelsTable.receiverPhone, `%${phone}%`))!);
+    conditions.push(ilike(parcelsTable.senderPhone, `%${phone}%`));
   }
   if (dateFrom) conditions.push(gte(parcelsTable.createdAt, new Date(dateFrom as string)));
   if (dateTo) {
