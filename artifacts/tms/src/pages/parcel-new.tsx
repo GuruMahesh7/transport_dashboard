@@ -21,10 +21,6 @@ const schema = z.object({
   senderPhone: z.string().min(10, "Valid phone required"),
   senderEmail: z.string().email("Valid email required").optional().or(z.literal("")),
   senderAddress: z.string().min(1, "Required"),
-  receiverName: z.string().min(1, "Required"),
-  receiverPhone: z.string().min(10, "Valid phone required"),
-  receiverEmail: z.string().email("Valid email required").optional().or(z.literal("")),
-  receiverAddress: z.string().min(1, "Required"),
   numBoxes: z.coerce.number().min(1),
   weightKg: z.coerce.number().min(0.1),
   itemId: z.coerce.number().min(1, "Required"),
@@ -167,7 +163,7 @@ export default function ParcelNew() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
             <Card className="shadow-sm">
               <CardHeader className="bg-muted/30 pb-4">
                 <CardTitle className="text-lg">Consignor</CardTitle>
@@ -196,33 +192,6 @@ export default function ParcelNew() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
-              <CardHeader className="bg-muted/30 pb-4">
-                <CardTitle className="text-lg">Consignee</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-4">
-                <div className="space-y-1">
-                  <Label>Name *</Label>
-                  <Input {...register("receiverName")} placeholder="Consignee Name" />
-                  {errors.receiverName && <p className="text-destructive text-xs">{errors.receiverName.message}</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label>Phone *</Label>
-                  <Input {...register("receiverPhone")} placeholder="10-digit number" />
-                  {errors.receiverPhone && <p className="text-destructive text-xs">{errors.receiverPhone.message}</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label>Address *</Label>
-                  <Input {...register("receiverAddress")} placeholder="Full address" />
-                  {errors.receiverAddress && <p className="text-destructive text-xs">{errors.receiverAddress.message}</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label>Email (Optional)</Label>
-                  <Input type="email" {...register("receiverEmail")} placeholder="Email" />
-                  {errors.receiverEmail && <p className="text-destructive text-xs">{errors.receiverEmail.message}</p>}
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
         </div>

@@ -144,15 +144,7 @@ export default function ParcelDetail() {
             <p className="text-muted-foreground">{parcel.senderAddress}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Receiver</CardTitle></CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p className="font-medium">{parcel.receiverName}</p>
-            <p className="text-muted-foreground">{parcel.receiverPhone}</p>
-            {parcel.receiverEmail && <p className="text-muted-foreground">{parcel.receiverEmail}</p>}
-            <p className="text-muted-foreground">{parcel.receiverAddress}</p>
-          </CardContent>
-        </Card>
+
         <Card>
           <CardHeader><CardTitle className="text-base">Parcel Info</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 text-sm">

@@ -82,8 +82,9 @@ export default function Reports() {
                     <tr>
                       <th className="px-4 py-3 text-left font-medium">AWB</th>
                       <th className="px-4 py-3 text-left font-medium">Sender</th>
-                      <th className="px-4 py-3 text-left font-medium">Receiver</th>
-                      <th className="px-4 py-3 text-left font-medium">Status</th>
+                      <th className="px-4 py-3 text-left font-medium">Item Type</th>
+                      <th className="px-4 py-3 text-left font-medium">Boxes</th>
+                      <th className="px-4 py-3 text-left font-medium">Weight (kg)</th>
                       <th className="px-4 py-3 text-right font-medium">Freight</th>
                       <th className="px-4 py-3 text-right font-medium">Handling</th>
                       <th className="px-4 py-3 text-right font-medium">Total</th>
@@ -97,11 +98,9 @@ export default function Reports() {
                           <div>{p.senderName}</div>
                           <div className="text-xs text-muted-foreground">{p.senderPhone}</div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div>{p.receiverName}</div>
-                          <div className="text-xs text-muted-foreground">{p.receiverPhone}</div>
-                        </td>
-                        <td className="px-4 py-3 text-xs">{p.currentStatus}</td>
+                        <td className="px-4 py-3">{p.itemName || "Item"}</td>
+                        <td className="px-4 py-3">{p.numBoxes}</td>
+                        <td className="px-4 py-3">{p.weightKg}</td>
                         <td className="px-4 py-3 text-right">₹{Number(p.charges).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right">₹{Number(p.handlingFee || 0).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right font-bold">₹{Number(p.totalAmount || p.charges).toFixed(2)}</td>

@@ -57,8 +57,7 @@ export default function Parcels() {
   const filtered = search
     ? parcels.filter(p =>
         p.awbNumber.toLowerCase().includes(search.toLowerCase()) ||
-        p.senderName.toLowerCase().includes(search.toLowerCase()) ||
-        p.receiverName.toLowerCase().includes(search.toLowerCase())
+        p.senderName.toLowerCase().includes(search.toLowerCase())
       )
     : parcels;
 
@@ -75,7 +74,7 @@ export default function Parcels() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search AWB, sender, receiver..."
+            placeholder="Search AWB, sender..."
             className="pl-9"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -135,7 +134,6 @@ export default function Parcels() {
                 <tr>
                   <th className="px-4 py-3 text-left font-medium">AWB</th>
                   <th className="px-4 py-3 text-left font-medium">Sender</th>
-                  <th className="px-4 py-3 text-left font-medium">Receiver</th>
                   <th className="px-4 py-3 text-left font-medium">Destination</th>
                   <th className="px-4 py-3 text-left font-medium">Status</th>
                   <th className="px-4 py-3 text-left font-medium">Date</th>
@@ -154,10 +152,7 @@ export default function Parcels() {
                       <div>{p.senderName}</div>
                       <div className="text-muted-foreground text-xs">{p.senderPhone}</div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div>{p.receiverName}</div>
-                      <div className="text-muted-foreground text-xs">{p.receiverPhone}</div>
-                    </td>
+
                     <td className="px-4 py-3 text-xs text-muted-foreground">
                       {p.destinationHubCode}
                     </td>
@@ -186,7 +181,7 @@ export default function Parcels() {
                       {STATUS_LABELS[p.currentStatus] ?? p.currentStatus}
                     </span>
                   </div>
-                  <div className="text-sm">{p.senderName} → {p.receiverName}</div>
+                  <div className="text-sm">{p.senderName}</div>
                   <div className="text-xs text-muted-foreground mt-1">Destination: {p.destinationHubCode} · {new Date(p.createdAt).toLocaleDateString()}</div>
                 </CardContent>
               </Card>

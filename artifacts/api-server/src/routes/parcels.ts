@@ -16,9 +16,7 @@ function parcelBase() {
       senderName: parcelsTable.senderName,
       senderPhone: parcelsTable.senderPhone,
       senderAddress: parcelsTable.senderAddress,
-      receiverName: parcelsTable.receiverName,
-      receiverPhone: parcelsTable.receiverPhone,
-      receiverAddress: parcelsTable.receiverAddress,
+
       numBoxes: parcelsTable.numBoxes,
       weightKg: parcelsTable.weightKg,
       itemId: parcelsTable.itemId,
@@ -88,10 +86,10 @@ router.get("/parcels", requireAuth, async (req, res) => {
 
 router.post("/parcels", requireAuth, async (req, res) => {
   const staff = (req as any).staff;
-  const { senderName, senderPhone, senderEmail, senderAddress, receiverName, receiverPhone, receiverEmail, receiverAddress, numBoxes, weightKg, itemId, charges, handlingFee, totalAmount, paymentType, remarks, destinationHubId } = req.body;
+  const { senderName, senderPhone, senderEmail, senderAddress, numBoxes, weightKg, itemId, charges, handlingFee, totalAmount, paymentType, remarks, destinationHubId } = req.body;
   const awbNumber = await generateAwbNumber();
   const [parcel] = await db.insert(parcelsTable).values({
-    awbNumber, senderName, senderPhone, senderEmail: senderEmail || null, senderAddress, receiverName, receiverPhone, receiverEmail: receiverEmail || null, receiverAddress,
+    awbNumber, senderName, senderPhone, senderEmail: senderEmail || null, senderAddress,
     numBoxes, weightKg: String(weightKg), itemId, charges: String(charges), handlingFee: String(handlingFee || 0), totalAmount: String(totalAmount || charges), paymentType: paymentType || 'To-Pay', remarks: remarks || null,
     destinationHubId, currentStatus: "RECEIVED_AT_ORIGIN", bookedBy: staff.id,
   }).returning();
@@ -123,7 +121,7 @@ router.get("/parcels/:parcelId", requireAuth, async (req, res) => {
 
 router.patch("/parcels/:parcelId", requireAuth, async (req, res) => {
   const parcelId = parseInt(req.params.parcelId as string);
-  const allowed = ["senderName", "senderPhone", "senderEmail", "senderAddress", "receiverName", "receiverPhone", "receiverEmail", "receiverAddress", "numBoxes", "weightKg", "itemId", "charges", "handlingFee", "totalAmount", "paymentType", "remarks"];
+  const allowed = ["senderName", "senderPhone", "senderEmail", "senderAddress", "numBoxes", "weightKg", "itemId", "charges", "handlingFee", "totalAmount", "paymentType", "remarks"];
   const updates: any = {};
   for (const k of allowed) { if (req.body[k] !== undefined) updates[k] = req.body[k]; }
   if (updates.weightKg) updates.weightKg = String(updates.weightKg);

@@ -58,11 +58,7 @@ export function Receipt({ parcel }: { parcel: any }) {
             </div>
             <div>
               <span className="font-semibold">To: </span>
-              {parcel.destinationHubCode}, {parcel.receiverPhone}
-            </div>
-            <div>
-              <span className="font-semibold">Consignee: </span>
-              {parcel.receiverName}, {parcel.receiverAddress}, Ph#: {parcel.receiverPhone}
+              {parcel.destinationHubCode}
             </div>
           </div>
         </div>

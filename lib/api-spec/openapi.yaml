@@ -993,7 +993,7 @@ components:
 
     Parcel:
       type: object
-      required: [id, awbNumber, senderName, senderPhone, receiverName, receiverPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt]
+      required: [id, awbNumber, senderName, senderPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -1007,14 +1007,7 @@ components:
           type: ["string", "null"]
         senderAddress:
           type: string
-        receiverName:
-          type: string
-        receiverPhone:
-          type: string
-        receiverEmail:
-          type: ["string", "null"]
-        receiverAddress:
-          type: string
+
         numBoxes:
           type: integer
         weightKg:
@@ -1046,7 +1039,7 @@ components:
 
     ParcelDetail:
       type: object
-      required: [id, awbNumber, senderName, senderPhone, receiverName, receiverPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt, history]
+      required: [id, awbNumber, senderName, senderPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt, history]
       properties:
         id:
           type: integer
@@ -1060,14 +1053,7 @@ components:
           type: ["string", "null"]
         senderAddress:
           type: string
-        receiverName:
-          type: string
-        receiverPhone:
-          type: string
-        receiverEmail:
-          type: ["string", "null"]
-        receiverAddress:
-          type: string
+
         numBoxes:
           type: integer
         weightKg:
@@ -1118,7 +1104,7 @@ components:
 
     ParcelInput:
       type: object
-      required: [senderName, senderPhone, senderAddress, receiverName, receiverPhone, receiverAddress, numBoxes, weightKg, itemId, charges, destinationHubId]
+      required: [senderName, senderPhone, senderAddress, numBoxes, weightKg, itemId, charges, destinationHubId]
       properties:
         senderName:
           type: string
@@ -1128,14 +1114,7 @@ components:
           type: string
         senderAddress:
           type: string
-        receiverName:
-          type: string
-        receiverPhone:
-          type: string
-        receiverEmail:
-          type: string
-        receiverAddress:
-          type: string
+
         numBoxes:
           type: integer
         weightKg:
@@ -1160,14 +1139,7 @@ components:
           type: string
         senderAddress:
           type: string
-        receiverName:
-          type: string
-        receiverPhone:
-          type: string
-        receiverEmail:
-          type: string
-        receiverAddress:
-          type: string
+
         numBoxes:
           type: integer
         weightKg:
