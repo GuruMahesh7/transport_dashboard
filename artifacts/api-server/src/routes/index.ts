@@ -18,7 +18,7 @@ router.use(healthRouter);
 router.use(authRouter);
 router.use(hubsRouter);
 router.use(staffRouter);
-router.use("/parcels", parcelsRouter);
+router.use(parcelsRouter);
 router.use("/items", itemsRouter);
 router.use(dashboardRouter);
 router.use(complaintsRouter);

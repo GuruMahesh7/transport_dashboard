@@ -32,11 +32,17 @@ export default function Parcels() {
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [hubId, setHubId] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [search, setSearch] = useState("");
   const limit = 20;
 
   const params: any = { page, limit };
   if (hubId && hubId !== "ALL") params.hubId = parseInt(hubId);
+  if (status && status !== "ALL") params.status = status;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
 
   const { data: hubsData } = useListHubs();
 
@@ -87,6 +93,34 @@ export default function Parcels() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={status} onValueChange={s => { setStatus(s); setPage(1); }}>
+          <SelectTrigger className="w-40" data-testid="select-status-filter">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Statuses</SelectItem>
+            {Object.keys(STATUS_LABELS).map(key => (
+              <SelectItem key={key} value={key}>{STATUS_LABELS[key]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-2">
+          <Input 
+            type="date" 
+            value={dateFrom} 
+            onChange={e => { setDateFrom(e.target.value); setPage(1); }} 
+            className="w-36" 
+            placeholder="From"
+          />
+          <span className="text-muted-foreground">-</span>
+          <Input 
+            type="date" 
+            value={dateTo} 
+            onChange={e => { setDateTo(e.target.value); setPage(1); }} 
+            className="w-36" 
+            placeholder="To"
+          />
+        </div>
       </div>
 
       {isLoading ? (

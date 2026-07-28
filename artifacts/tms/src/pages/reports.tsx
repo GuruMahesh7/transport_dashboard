@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useGetDailyReport, getGetDailyReportQueryKey, useGetHubWiseReport, getGetHubWiseReportQueryKey, useGetMonthlyReport, getGetMonthlyReportQueryKey } from "@workspace/api-client-react";
+import { useGetDailyReport, getGetDailyReportQueryKey, useGetHubWiseReport, getGetHubWiseReportQueryKey, useGetMonthlyReport, getGetMonthlyReportQueryKey, useListParcels, getListParcelsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Download } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 
 export default function Reports() {
   const [dailyDate, setDailyDate] = useState(new Date().toISOString().split("T")[0]);
@@ -17,8 +17,11 @@ export default function Reports() {
   const { data: hubWise = [] } = useGetHubWiseReport({ dateFrom, dateTo }, { query: { queryKey: getGetHubWiseReportQueryKey({ dateFrom, dateTo }) } });
   const { data: monthly = [] } = useGetMonthlyReport({ months: 6 }, { query: { queryKey: getGetMonthlyReportQueryKey({ months: 6 }) } });
 
+  const { data: dailyParcelsData, isLoading: dailyParcelsLoading } = useListParcels({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }, { query: { queryKey: getListParcelsQueryKey({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }) } });
+  const dailyParcels = dailyParcelsData?.parcels ?? [];
+
   const handleExport = () => {
-    window.open(`/api/reports/daily?format=csv&date=${dailyDate}`, "_blank");
+    window.print();
   };
 
   return (
@@ -28,20 +31,20 @@ export default function Reports() {
           <h2 className="text-2xl font-bold">Reports</h2>
           <p className="text-muted-foreground text-sm">Analytics and performance data</p>
         </div>
-        <Button variant="outline" onClick={handleExport} data-testid="button-export">
-          <Download className="w-4 h-4 mr-2" /> Export CSV
+        <Button variant="outline" onClick={handleExport} data-testid="button-export" className="print:hidden">
+          <Printer className="w-4 h-4 mr-2" /> Print Report
         </Button>
       </div>
 
       <Tabs defaultValue="daily">
-        <TabsList>
+        <TabsList className="print:hidden">
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="hub-wise">Hub-wise</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
         </TabsList>
 
         <TabsContent value="daily" className="space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 print:hidden">
             <Label>Date</Label>
             <Input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="w-40" data-testid="input-daily-date" />
           </div>
@@ -53,6 +56,62 @@ export default function Reports() {
               <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-primary">₹{Number(daily.revenueToday).toFixed(0)}</p><p className="text-sm text-muted-foreground">Revenue</p></CardContent></Card>
             </div>
           )}
+          
+          <div className="mt-8 hidden print:block">
+            <h3 className="text-xl font-bold mb-4">Daily Report - {dailyDate}</h3>
+            {daily && (
+              <div className="flex gap-8 mb-6">
+                <div><strong>Total Booked:</strong> {daily.totalBooked}</div>
+                <div><strong>Delivered:</strong> {daily.totalDelivered}</div>
+                <div><strong>Pending:</strong> {daily.totalPending}</div>
+                <div><strong>Revenue:</strong> ₹{Number(daily.revenueToday).toFixed(0)}</div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 print:mt-4">
+            <h3 className="text-lg font-bold mb-4">Parcels Booked ({dailyParcels.length})</h3>
+            {dailyParcelsLoading ? (
+              <div className="text-muted-foreground">Loading parcels...</div>
+            ) : dailyParcels.length === 0 ? (
+              <div className="text-muted-foreground">No parcels booked on this date.</div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">AWB</th>
+                      <th className="px-4 py-3 text-left font-medium">Sender</th>
+                      <th className="px-4 py-3 text-left font-medium">Receiver</th>
+                      <th className="px-4 py-3 text-left font-medium">Status</th>
+                      <th className="px-4 py-3 text-right font-medium">Freight</th>
+                      <th className="px-4 py-3 text-right font-medium">Handling</th>
+                      <th className="px-4 py-3 text-right font-medium">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {dailyParcels.map((p: any) => (
+                      <tr key={p.id}>
+                        <td className="px-4 py-3 font-mono font-medium">{p.awbNumber}</td>
+                        <td className="px-4 py-3">
+                          <div>{p.senderName}</div>
+                          <div className="text-xs text-muted-foreground">{p.senderPhone}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div>{p.receiverName}</div>
+                          <div className="text-xs text-muted-foreground">{p.receiverPhone}</div>
+                        </td>
+                        <td className="px-4 py-3 text-xs">{p.currentStatus}</td>
+                        <td className="px-4 py-3 text-right">₹{Number(p.charges).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right">₹{Number(p.handlingFee || 0).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right font-bold">₹{Number(p.totalAmount || p.charges).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="hub-wise" className="space-y-4">

@@ -10,6 +10,7 @@
     "dev:server": "pnpm --filter @workspace/api-server dev",
     "dev:tms": "pnpm --filter @workspace/tms dev",
     "dev": "concurrently -n \"server,tms\" -c \"blue,green\" \"pnpm dev:server\" \"pnpm dev:tms\"",
+    "start": "pnpm --filter @workspace/db run push && pnpm --filter @workspace/api-server run start",
     "seed": "pnpm --filter @workspace/scripts seed"
   },
   "private": true,
