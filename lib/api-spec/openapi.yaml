@@ -1,0 +1,1470 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Transport Management System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: hubs
+    description: Hub management
+  - name: staff
+    description: Staff management
+  - name: items
+    description: Items catalog
+  - name: parcels
+    description: Parcel operations
+  - name: scanning
+    description: Parcel scanning
+  - name: dashboard
+    description: Dashboard stats
+  - name: complaints
+    description: Complaint management
+  - name: reports
+    description: Reports and analytics
+  - name: search
+    description: Global search
+  - name: audit
+    description: Audit logs
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # HUBS
+  /hubs:
+    get:
+      operationId: listHubs
+      tags: [hubs]
+      summary: List all hubs
+      responses:
+        "200":
+          description: List of hubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hub"
+
+    post:
+      operationId: createHub
+      tags: [hubs]
+      summary: Create a hub
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HubInput"
+      responses:
+        "201":
+          description: Hub created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hub"
+
+  /hubs/{hubId}:
+    get:
+      operationId: getHub
+      tags: [hubs]
+      summary: Get hub by ID
+      parameters:
+        - name: hubId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hub
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hub"
+
+    patch:
+      operationId: updateHub
+      tags: [hubs]
+      summary: Update a hub
+      parameters:
+        - name: hubId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HubUpdate"
+      responses:
+        "200":
+          description: Hub updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hub"
+
+  /hubs/{hubId}/toggle-active:
+    patch:
+      operationId: toggleHubActive
+      tags: [hubs]
+      summary: Toggle hub active status
+      parameters:
+        - name: hubId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Hub status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hub"
+
+  # STAFF
+  /staff:
+    get:
+      operationId: listStaff
+      tags: [staff]
+      summary: List staff members
+      parameters:
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+        - name: role
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StaffMember"
+
+    post:
+      operationId: createStaff
+      tags: [staff]
+      summary: Create a staff member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffInput"
+      responses:
+        "201":
+          description: Staff created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+  /staff/{staffId}:
+    get:
+      operationId: getStaffMember
+      tags: [staff]
+      summary: Get staff member
+      parameters:
+        - name: staffId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Staff member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+    patch:
+      operationId: updateStaff
+      tags: [staff]
+      summary: Update staff member
+      parameters:
+        - name: staffId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffUpdate"
+      responses:
+        "200":
+          description: Staff updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+  /staff/{staffId}/toggle-active:
+    patch:
+      operationId: toggleStaffActive
+      tags: [staff]
+      summary: Toggle staff active status
+      parameters:
+        - name: staffId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Staff status toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+
+  # ITEMS
+  /items:
+    get:
+      operationId: listItems
+      tags: [items]
+      summary: List all items
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+
+    post:
+      operationId: createItem
+      tags: [items]
+      summary: Create an item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+
+  # PARCELS
+  /parcels:
+    get:
+      operationId: listParcels
+      tags: [parcels]
+      summary: List parcels
+      parameters:
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of parcels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParcelListResponse"
+
+    post:
+      operationId: createParcel
+      tags: [parcels]
+      summary: Create a parcel booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParcelInput"
+      responses:
+        "201":
+          description: Parcel created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Parcel"
+
+  /parcels/{parcelId}:
+    get:
+      operationId: getParcel
+      tags: [parcels]
+      summary: Get parcel details
+      parameters:
+        - name: parcelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Parcel details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParcelDetail"
+
+    patch:
+      operationId: updateParcel
+      tags: [parcels]
+      summary: Update parcel details
+      parameters:
+        - name: parcelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParcelUpdate"
+      responses:
+        "200":
+          description: Parcel updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Parcel"
+
+  /parcels/{parcelId}/status:
+    patch:
+      operationId: updateParcelStatus
+      tags: [parcels]
+      summary: Update parcel status
+      parameters:
+        - name: parcelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParcelStatusUpdate"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParcelDetail"
+
+  /parcels/{parcelId}/history:
+    get:
+      operationId: getParcelHistory
+      tags: [parcels]
+      summary: Get parcel status history
+      parameters:
+        - name: parcelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Status history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParcelStatusHistory"
+
+  /parcels/awb/{awbNumber}:
+    get:
+      operationId: getParcelByAwb
+      tags: [parcels]
+      summary: Get parcel by AWB number
+      parameters:
+        - name: awbNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Parcel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParcelDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # SCANNING
+  /scan:
+    post:
+      operationId: scanParcel
+      tags: [scanning]
+      summary: Scan a parcel and update status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScanInput"
+      responses:
+        "200":
+          description: Scan result with updated parcel
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanResult"
+        "404":
+          description: Parcel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # DASHBOARD
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      parameters:
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/recent-parcels:
+    get:
+      operationId: getRecentParcels
+      tags: [dashboard]
+      summary: Get recent parcels for dashboard
+      parameters:
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent parcels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Parcel"
+
+  /dashboard/hub-breakdown:
+    get:
+      operationId: getHubBreakdown
+      tags: [dashboard]
+      summary: Get per-hub stats breakdown (super admin)
+      responses:
+        "200":
+          description: Hub breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HubStats"
+
+  # COMPLAINTS
+  /complaints:
+    get:
+      operationId: listComplaints
+      tags: [complaints]
+      summary: List complaints
+      parameters:
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: parcelId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of complaints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+
+    post:
+      operationId: createComplaint
+      tags: [complaints]
+      summary: Raise a complaint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintInput"
+      responses:
+        "201":
+          description: Complaint created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+
+  /complaints/{complaintId}:
+    get:
+      operationId: getComplaint
+      tags: [complaints]
+      summary: Get complaint details
+      parameters:
+        - name: complaintId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Complaint
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+
+    patch:
+      operationId: updateComplaint
+      tags: [complaints]
+      summary: Update complaint (assign, resolve, close)
+      parameters:
+        - name: complaintId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintUpdate"
+      responses:
+        "200":
+          description: Complaint updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+
+  # REPORTS
+  /reports/daily:
+    get:
+      operationId: getDailyReport
+      tags: [reports]
+      summary: Get daily report
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Daily report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyReport"
+
+  /reports/hub-wise:
+    get:
+      operationId: getHubWiseReport
+      tags: [reports]
+      summary: Get hub-wise report
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Hub-wise report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HubReport"
+
+  /reports/monthly:
+    get:
+      operationId: getMonthlyReport
+      tags: [reports]
+      summary: Get monthly report
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyReport"
+
+  /reports/export:
+    get:
+      operationId: exportReport
+      tags: [reports]
+      summary: Export report as CSV
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: CSV export URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResponse"
+
+  # SEARCH
+  /search:
+    get:
+      operationId: searchParcels
+      tags: [search]
+      summary: Search parcels globally
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: phone
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Parcel"
+
+  # AUDIT LOGS
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: Get audit logs
+      parameters:
+        - name: staffId
+          in: query
+          schema:
+            type: integer
+        - name: hubId
+          in: query
+          schema:
+            type: integer
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogListResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, staff]
+      properties:
+        token:
+          type: string
+        staff:
+          $ref: "#/components/schemas/StaffMember"
+
+    Hub:
+      type: object
+      required: [id, hubName, hubCode, address, contactNumber, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        hubName:
+          type: string
+        hubCode:
+          type: string
+        address:
+          type: string
+        contactNumber:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    HubInput:
+      type: object
+      required: [hubName, hubCode, address, contactNumber]
+      properties:
+        hubName:
+          type: string
+        hubCode:
+          type: string
+        address:
+          type: string
+        contactNumber:
+          type: string
+
+    HubUpdate:
+      type: object
+      properties:
+        hubName:
+          type: string
+        hubCode:
+          type: string
+        address:
+          type: string
+        contactNumber:
+          type: string
+
+    StaffUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+
+    StaffInput:
+      type: object
+      required: [name, phone, email, password, role]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+    StaffMember:
+      type: object
+      required: [id, name, phone, email, role, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+
+    Parcel:
+      type: object
+      required: [id, awbNumber, senderName, senderPhone, receiverName, receiverPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        awbNumber:
+          type: string
+        senderName:
+          type: string
+        senderPhone:
+          type: string
+        senderEmail:
+          type: ["string", "null"]
+        senderAddress:
+          type: string
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        receiverEmail:
+          type: ["string", "null"]
+        receiverAddress:
+          type: string
+        numBoxes:
+          type: integer
+        weightKg:
+          type: number
+        itemId:
+          type: integer
+        itemName:
+          type: ["string", "null"]
+        charges:
+          type: number
+        remarks:
+          type: ["string", "null"]
+        destinationHubId:
+          type: integer
+        destinationHubName:
+          type: ["string", "null"]
+        destinationHubCode:
+          type: ["string", "null"]
+        currentStatus:
+          type: string
+        bookedBy:
+          type: ["integer", "null"]
+        bookedByName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ParcelDetail:
+      type: object
+      required: [id, awbNumber, senderName, senderPhone, receiverName, receiverPhone, numBoxes, weightKg, itemId, charges, destinationHubId, currentStatus, createdAt, updatedAt, history]
+      properties:
+        id:
+          type: integer
+        awbNumber:
+          type: string
+        senderName:
+          type: string
+        senderPhone:
+          type: string
+        senderEmail:
+          type: ["string", "null"]
+        senderAddress:
+          type: string
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        receiverEmail:
+          type: ["string", "null"]
+        receiverAddress:
+          type: string
+        numBoxes:
+          type: integer
+        weightKg:
+          type: number
+        itemId:
+          type: integer
+        itemName:
+          type: ["string", "null"]
+        charges:
+          type: number
+        remarks:
+          type: ["string", "null"]
+        destinationHubId:
+          type: integer
+        destinationHubName:
+          type: ["string", "null"]
+        destinationHubCode:
+          type: ["string", "null"]
+        currentStatus:
+          type: string
+        bookedBy:
+          type: ["integer", "null"]
+        bookedByName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParcelStatusHistory"
+
+    ParcelListResponse:
+      type: object
+      required: [parcels, total, page, limit]
+      properties:
+        parcels:
+          type: array
+          items:
+            $ref: "#/components/schemas/Parcel"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    ParcelInput:
+      type: object
+      required: [senderName, senderPhone, senderAddress, receiverName, receiverPhone, receiverAddress, numBoxes, weightKg, itemId, charges, destinationHubId]
+      properties:
+        senderName:
+          type: string
+        senderPhone:
+          type: string
+        senderEmail:
+          type: string
+        senderAddress:
+          type: string
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        receiverEmail:
+          type: string
+        receiverAddress:
+          type: string
+        numBoxes:
+          type: integer
+        weightKg:
+          type: number
+        itemId:
+          type: integer
+        charges:
+          type: number
+        remarks:
+          type: string
+        destinationHubId:
+          type: integer
+
+    ParcelUpdate:
+      type: object
+      properties:
+        senderName:
+          type: string
+        senderPhone:
+          type: string
+        senderEmail:
+          type: string
+        senderAddress:
+          type: string
+        receiverName:
+          type: string
+        receiverPhone:
+          type: string
+        receiverEmail:
+          type: string
+        receiverAddress:
+          type: string
+        numBoxes:
+          type: integer
+        weightKg:
+          type: number
+        itemId:
+          type: integer
+        charges:
+          type: number
+        remarks:
+          type: string
+
+    ParcelStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+        notes:
+          type: string
+        hubId:
+          type: integer
+
+    ParcelStatusHistory:
+      type: object
+      required: [id, parcelId, status, timestamp]
+      properties:
+        id:
+          type: integer
+        parcelId:
+          type: integer
+        status:
+          type: string
+        hubId:
+          type: ["integer", "null"]
+        hubName:
+          type: ["string", "null"]
+        updatedBy:
+          type: ["integer", "null"]
+        updatedByName:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        timestamp:
+          type: string
+
+    ScanInput:
+      type: object
+      required: [awbNumber, action]
+      properties:
+        awbNumber:
+          type: string
+        action:
+          type: string
+        hubId:
+          type: integer
+        notes:
+          type: string
+
+    ScanResult:
+      type: object
+      required: [parcel, previousStatus, newStatus, actionTaken]
+      properties:
+        parcel:
+          $ref: "#/components/schemas/ParcelDetail"
+        previousStatus:
+          type: string
+        newStatus:
+          type: string
+        actionTaken:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [todayBookings, incomingParcels, outgoingParcels, readyForPickup, deliveredToday, openComplaints]
+      properties:
+        todayBookings:
+          type: integer
+        incomingParcels:
+          type: integer
+        outgoingParcels:
+          type: integer
+        readyForPickup:
+          type: integer
+        deliveredToday:
+          type: integer
+        openComplaints:
+          type: integer
+
+    HubStats:
+      type: object
+      required: [hubId, hubName, hubCode, todayBookings, inTransit, delivered, pending, complaints]
+      properties:
+        hubId:
+          type: integer
+        hubName:
+          type: string
+        hubCode:
+          type: string
+        todayBookings:
+          type: integer
+        inTransit:
+          type: integer
+        delivered:
+          type: integer
+        pending:
+          type: integer
+        complaints:
+          type: integer
+
+    Complaint:
+      type: object
+      required: [id, complaintNumber, parcelId, raisedBy, complaintType, description, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        complaintNumber:
+          type: string
+        parcelId:
+          type: integer
+        awbNumber:
+          type: ["string", "null"]
+        raisedBy:
+          type: integer
+        raisedByName:
+          type: ["string", "null"]
+        complaintType:
+          type: string
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        assignedTo:
+          type: ["integer", "null"]
+        assignedToName:
+          type: ["string", "null"]
+        resolutionNotes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ComplaintInput:
+      type: object
+      required: [parcelId, complaintType, description]
+      properties:
+        parcelId:
+          type: integer
+        complaintType:
+          type: string
+        description:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+
+    ComplaintUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        assignedTo:
+          type: ["integer", "null"]
+        resolutionNotes:
+          type: string
+
+    DailyReport:
+      type: object
+      required: [date, totalBooked, totalDelivered, totalPending, revenueToday]
+      properties:
+        date:
+          type: string
+        totalBooked:
+          type: integer
+        totalDelivered:
+          type: integer
+        totalPending:
+          type: integer
+        revenueToday:
+          type: number
+
+    HubReport:
+      type: object
+      required: [hubId, hubName, hubCode, bookings, deliveries, pending, revenue, complaints]
+      properties:
+        hubId:
+          type: integer
+        hubName:
+          type: string
+        hubCode:
+          type: string
+        bookings:
+          type: integer
+        deliveries:
+          type: integer
+        pending:
+          type: integer
+        revenue:
+          type: number
+        complaints:
+          type: integer
+
+    MonthlyReport:
+      type: object
+      required: [month, year, totalParcels, delivered, deliveryPercentage, complaintRate]
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        label:
+          type: string
+        totalParcels:
+          type: integer
+        delivered:
+          type: integer
+        deliveryPercentage:
+          type: number
+        complaintRate:
+          type: number
+        revenue:
+          type: number
+
+    ExportResponse:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+
+    AuditLog:
+      type: object
+      required: [id, action, entityType, entityId, performedBy, timestamp]
+      properties:
+        id:
+          type: integer
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+        oldValue:
+          type: ["object", "null"]
+        newValue:
+          type: ["object", "null"]
+        performedBy:
+          type: integer
+        performedByName:
+          type: ["string", "null"]
+        hubId:
+          type: ["integer", "null"]
+        hubName:
+          type: ["string", "null"]
+        timestamp:
+          type: string
+        description:
+          type: ["string", "null"]
+
+    AuditLogListResponse:
+      type: object
+      required: [logs, total, page, limit]
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Item:
+      type: object
+      required: [id, name, defaultPrice, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        defaultPrice:
+          type: number
+        createdAt:
+          type: string
+
+    ItemInput:
+      type: object
+      required: [name, defaultPrice]
+      properties:
+        name:
+          type: string
+        defaultPrice:
+          type: number

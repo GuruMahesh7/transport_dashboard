@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: transport-manager
+    env: node
+    plan: starter # You can downgrade to free tier in Render UI if preferred
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm --filter @workspace/api-server start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Render will prompt you to paste your database URL
+      - key: SESSION_SECRET
+        generateValue: true # Render will automatically generate a secure random secret for you

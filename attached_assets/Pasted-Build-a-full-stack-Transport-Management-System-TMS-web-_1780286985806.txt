@@ -1,0 +1,280 @@
+Build a full-stack Transport Management System (TMS) web application for internal use by admin and hub staff. This is NOT a simple parcel booking form — it is a complete operations platform that digitizes the entire parcel movement workflow across 6 regional hubs.
+
+Customer-facing parcel tracking will be built as a separate application later. Do not build any public tracking page or customer-facing routes in this phase.
+
+---
+
+## TECH STACK
+- Frontend: React + Tailwind CSS
+- Backend: Node.js + Express (or Next.js API routes)
+- Database: PostgreSQL (with Prisma ORM)
+- Auth: JWT-based role authentication
+- SMS: Twilio (or MSG91) for automated notifications
+- QR/Barcode: Use a library like qrcode + react-qr-scanner
+
+---
+
+## USER ROLES & ACCESS
+
+### 1. Super Admin (Owner)
+Full system access:
+- View/manage all 6 hubs
+- View/manage all staff accounts
+- View all parcels across all hubs
+- Access revenue & analytics reports
+- Handle escalated complaints
+- View audit logs
+
+### 2. Hub Manager / Hub Staff
+Scoped to their assigned hub only:
+- Create new parcel bookings
+- Receive parcels (scan or manual)
+- Dispatch parcels to next hub
+- Mark parcels as delivered
+- Raise and manage complaints
+- View their hub dashboard
+
+---
+
+## MODULE 1 — HUB MANAGEMENT
+
+Table: hubs
+Fields: id, hub_name, hub_code, address, contact_number, is_active, created_at
+
+The 6 hubs are:
+- Hyderabad (HYD)
+- Warangal (WGL)
+- Karimnagar (KMR)
+- Nizamabad (NZB)
+- Khammam (KHM)
+- Nalgonda (NLG)
+
+Super Admin can add, edit, activate/deactivate hubs.
+
+---
+
+## MODULE 2 — STAFF MANAGEMENT
+
+Table: staff
+Fields: id, name, phone, email, password_hash, hub_id (FK), role, is_active, created_at
+
+Roles: SUPER_ADMIN | HUB_MANAGER | HUB_STAFF
+
+Only Super Admin can create/edit/deactivate staff accounts.
+Staff can only see and act on data within their assigned hub.
+
+---
+
+## MODULE 3 — PARCEL BOOKING
+
+This is the most-used screen. Build it to be fast and minimal friction.
+
+Table: parcels
+Fields:
+- id
+- awb_number (auto-generated, format: HB + YYYYMMDD + 4-digit sequence, e.g. HB202606010001)
+- sender_name, sender_phone, sender_address
+- receiver_name, receiver_phone, receiver_address
+- num_boxes, weight_kg, parcel_type, charges, remarks
+- source_hub_id (FK), destination_hub_id (FK)
+- current_status
+- booked_by (staff FK)
+- created_at, updated_at
+
+On booking creation:
+1. Auto-generate AWB number
+2. Generate QR code and barcode for the AWB
+3. Set status = BOOKED
+4. Send SMS to receiver: "Your parcel has been booked. AWB: {awb}."
+5. Allow printing of booking slip with QR/barcode
+
+---
+
+## PARCEL LIFECYCLE — STATUS FLOW
+
+Statuses (in order):
+1. BOOKED — set at booking creation
+2. RECEIVED_AT_ORIGIN — origin hub staff confirms physical receipt
+3. DISPATCHED — loaded into transport, in transit
+4. RECEIVED_AT_DESTINATION — destination hub staff scans on arrival
+5. READY_FOR_PICKUP — parcel available for customer collection → trigger SMS
+6. DELIVERED — customer has collected the parcel
+
+Table: parcel_status_history
+Fields: id, parcel_id (FK), status, hub_id (FK), updated_by (staff FK), notes, timestamp
+
+Every status change must be logged here.
+
+---
+
+## MODULE 4 — PARCEL SCANNING SYSTEM (CRITICAL)
+
+Build a scan-first workflow. Hub staff should not need to type AWB numbers manually.
+
+Features:
+- Camera-based QR/barcode scanner in the browser
+- Staff opens scan screen, scans parcel
+- System identifies the parcel and shows current status
+- Staff confirms the next action (Receive / Dispatch / Deliver)
+- Status updates instantly
+
+Scan flows:
+- At origin hub → RECEIVED_AT_ORIGIN
+- At dispatch → DISPATCHED
+- At destination hub → RECEIVED_AT_DESTINATION
+- At delivery → DELIVERED
+
+Also allow manual AWB entry as fallback.
+
+---
+
+## MODULE 5 — HUB DASHBOARD
+
+First screen staff see after login. Show today's numbers for their hub only.
+
+Cards to display:
+- Today's Bookings
+- Incoming Parcels (arriving at this hub today)
+- Outgoing Parcels (dispatched from this hub today)
+- Ready for Pickup (count)
+- Delivered Today
+- Open Complaints
+
+Also show:
+- A list of recent parcels (last 10) with quick status chips
+- Quick-access button to scan a parcel
+
+Super Admin dashboard shows aggregated totals across all hubs + a hub-by-hub breakdown table.
+
+---
+
+## MODULE 6 — COMPLAINT MANAGEMENT
+
+Table: complaints
+Fields: id, complaint_number (auto-generated), parcel_id (FK), raised_by (staff FK), complaint_type, description, images (array of URLs), status, assigned_to (staff FK), resolution_notes, created_at, updated_at
+
+Complaint types:
+- MISSING_PARCEL
+- MISSING_BOX
+- DAMAGED_PARCEL
+- WRONG_DELIVERY
+- DELAY
+
+Status flow:
+RAISED → INVESTIGATING → RESOLVED → CLOSED
+
+Any staff can raise a complaint against a parcel.
+Super Admin can view all complaints, assign and resolve them.
+
+---
+
+## MODULE 7 — NOTIFICATIONS (SMS)
+
+Trigger SMS automatically at these events:
+
+1. Booking created →
+   "Your parcel has been booked. AWB: {awb}. Estimated delivery to {destination}."
+
+2. Parcel arrives at destination hub (RECEIVED_AT_DESTINATION) →
+   "Your parcel has arrived at {hub_name}. It will be ready for pickup soon."
+
+3. Ready for pickup (READY_FOR_PICKUP) →
+   "Your parcel is ready for pickup at {hub_name}. AWB: {awb}. Please collect at the earliest."
+
+4. Delivered →
+   "Your parcel (AWB: {awb}) has been delivered successfully. Thank you."
+
+Send SMS to receiver_phone for all events.
+
+---
+
+## MODULE 8 — REPORTS (SUPER ADMIN ONLY)
+
+Daily Report:
+- Total parcels booked today
+- Total delivered today
+- Total pending
+- Revenue collected today
+
+Hub-wise Report:
+- Per hub: bookings, deliveries, pending, revenue, complaints count
+
+Monthly Report:
+- Month-on-month growth (parcel volume)
+- Delivery performance % (delivered vs total)
+- Complaint rate %
+
+Add date range filter. Allow CSV export.
+
+---
+
+## MODULE 9 — SEARCH
+
+Global search accessible from the internal nav.
+
+Search by:
+- AWB Number (exact)
+- Customer phone (sender or receiver)
+- Date range
+
+Results show: AWB, sender, receiver, source hub, destination hub, current status, last updated.
+
+Clicking a result opens the full parcel detail page.
+
+---
+
+## MODULE 10 — AUDIT LOGS
+
+Table: audit_logs
+Fields: id, action, entity_type, entity_id, old_value (JSON), new_value (JSON), performed_by (staff FK), hub_id (FK), timestamp
+
+Log every:
+- Parcel status change
+- Staff account creation/edit
+- Hub activation/deactivation
+- Complaint status change
+
+Super Admin can view full audit log with filters by: staff, hub, date range, action type.
+
+Example display:
+"Mahesh changed parcel HB202606010001 status from BOOKED to DISPATCHED at 10:45 AM from Warangal Hub"
+
+---
+
+## DATABASE SEED DATA
+
+Seed the database with:
+- All 6 hubs with correct names and hub codes
+- 1 Super Admin account (email: admin@tms.com, password: Admin@123)
+- 2 staff per hub (1 Hub Manager + 1 Hub Staff)
+- 10 sample parcels in various statuses
+
+---
+
+## UI/UX REQUIREMENTS
+
+- Mobile-responsive (staff will use on phones and tablets at hubs)
+- Scan screen must work on mobile camera
+- Dashboard must load fast — staff are busy at counters
+- Booking form: auto-focus fields, tab-order optimized, keyboard-friendly
+- Status chips: use consistent color coding
+  - BOOKED = blue
+  - IN TRANSIT = amber
+  - READY_FOR_PICKUP = purple
+  - DELIVERED = green
+  - Complaints = red
+- All routes require login — no public pages in this phase
+
+---
+
+## PHASE 2 (DO NOT BUILD NOW — note for future)
+- Customer-facing parcel tracking page (separate app)
+- Mobile app for hub staff
+- Driver & vehicle management
+- GPS live tracking
+- Route optimization between hubs
+- E-POD (electronic proof of delivery with digital signature)
+
+---
+
+Start by scaffolding the project structure, setting up the database schema with all tables and relations, then build module by module starting with: Auth → Hub Management → Staff Management → Parcel Booking → Parcel Scanning → Hub Dashboard.
