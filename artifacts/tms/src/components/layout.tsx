@@ -1,11 +1,32 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { Package, LayoutDashboard, Search, Users, MapPin, AlertCircle, FileText, Activity, LogOut, Plus } from "lucide-react";
+import { Package, LayoutDashboard, Search, Users, MapPin, AlertCircle, FileText, Activity, LogOut, Plus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePWA } from "@/hooks/use-pwa";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useEffect } from "react";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
+  const { isInstallable, installApp } = usePWA();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isInstallable) {
+      toast({
+        title: "Install TMS App",
+        description: "Add to home screen for offline access and a faster, native experience.",
+        action: (
+          <ToastAction altText="Install" onClick={installApp} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            Install
+          </ToastAction>
+        ),
+        duration: 10000,
+      });
+    }
+  }, [isInstallable, installApp, toast]);
 
   if (!user) return <div className="p-8">Loading...</div>;
 
@@ -49,6 +70,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        {isInstallable && (
+          <div className="p-4 border-t bg-primary/5">
+            <div className="bg-background rounded-lg border p-3 shadow-sm">
+              <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1">
+                <Download className="w-3.5 h-3.5 text-primary animate-bounce" />
+                TMS App Available
+              </h4>
+              <p className="text-[11px] text-muted-foreground mb-2.5">
+                Install for offline support and desktop shortcut.
+              </p>
+              <Button size="sm" className="w-full text-xs h-8" onClick={installApp}>
+                Install Web App
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="p-4 border-t">
           <div className="mb-4">
             <p className="text-sm font-medium">{user.name}</p>
