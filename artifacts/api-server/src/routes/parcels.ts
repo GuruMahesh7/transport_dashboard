@@ -119,9 +119,9 @@ router.post("/parcels", requireAuth, async (req, res) => {
   }];
 
   // Calculate totals
-  const totalBoxes = incomingItems.reduce((acc, curr) => acc + (Number(curr.numBoxes) || 0), 0);
-  const totalWeight = incomingItems.reduce((acc, curr) => acc + (Number(curr.weightKg) || 0), 0);
-  const totalCharges = incomingItems.reduce((acc, curr) => acc + (Number(curr.charges) || 0), 0);
+  const totalBoxes = incomingItems.reduce((acc: any, curr: any) => acc + (Number(curr.numBoxes) || 0), 0);
+  const totalWeight = incomingItems.reduce((acc: any, curr: any) => acc + (Number(curr.weightKg) || 0), 0);
+  const totalCharges = incomingItems.reduce((acc: any, curr: any) => acc + (Number(curr.charges) || 0), 0);
   const parsedHandlingFee = Number(handlingFee) || 0;
   const totalAmount = totalCharges + parsedHandlingFee;
   
@@ -140,7 +140,7 @@ router.post("/parcels", requireAuth, async (req, res) => {
   }).returning();
 
   if (incomingItems.length > 0) {
-    const itemsToInsert = incomingItems.map(item => ({
+    const itemsToInsert = incomingItems.map((item: any) => ({
       parcelId: parcel.id,
       itemId: item.itemId,
       numBoxes: Number(item.numBoxes),

@@ -157,9 +157,9 @@ export default function ParcelDetail() {
             
             <div className="border-t pt-4">
               <h4 className="font-semibold text-xs text-muted-foreground uppercase mb-2">Items</h4>
-              {parcel.items && parcel.items.length > 0 ? (
+              {(parcel as any).items && (parcel as any).items.length > 0 ? (
                 <div className="space-y-2">
-                  {parcel.items.map((item: any, idx: number) => (
+                  {(parcel as any).items.map((item: any, idx: number) => (
                     <div key={idx} className="bg-muted/30 p-2 rounded text-xs grid grid-cols-2 gap-1">
                       <div><span className="text-muted-foreground">Type:</span> {item.itemName}</div>
                       <div><span className="text-muted-foreground">Boxes:</span> {item.numBoxes}</div>
