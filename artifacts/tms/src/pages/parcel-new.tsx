@@ -122,48 +122,33 @@ export default function ParcelNew() {
 
     try {
       setIsSubmitting(true);
-      const totalRows = itemTabs.length;
-      let firstParcelId: number | null = null;
+      
+      const payloadItems = itemTabs.map(tab => ({
+        itemId: tab.itemId,
+        numBoxes: tab.numBoxes,
+        weightKg: tab.weightKg,
+        charges: tab.charges,
+        remarks: tab.remarks || undefined
+      }));
 
-      for (let i = 0; i < totalRows; i++) {
-        const row = itemTabs[i];
-        
-        // Apply handling fee only to the first parcel, others have 0
-        const fee = i === 0 ? Number(data.handlingFee) || 0 : 0;
-        const totalAmt = row.charges + fee;
-
-        const res = await createParcel.mutateAsync({
-          data: {
-            senderName: data.senderName,
-            senderPhone: data.senderPhone,
-            senderEmail: data.senderEmail || undefined,
-            senderAddress: data.senderAddress,
-            destinationHubId: data.destinationHubId,
-            paymentType: data.paymentType,
-            itemId: row.itemId,
-            numBoxes: row.numBoxes,
-            weightKg: row.weightKg,
-            charges: row.charges,
-            remarks: row.remarks || undefined,
-            handlingFee: fee,
-            totalAmount: totalAmt,
-          } as any
-        });
-
-        if (i === 0) {
-          firstParcelId = res.id;
-        }
-      }
+      const res = await createParcel.mutateAsync({
+        data: {
+          senderName: data.senderName,
+          senderPhone: data.senderPhone,
+          senderEmail: data.senderEmail || undefined,
+          senderAddress: data.senderAddress,
+          destinationHubId: data.destinationHubId,
+          paymentType: data.paymentType,
+          handlingFee: Number(data.handlingFee) || 0,
+          items: payloadItems
+        } as any
+      });
 
       queryClient.invalidateQueries({ queryKey: getListParcelsQueryKey() });
-      toast({ title: "Booking Confirmed", description: `Successfully created ${totalRows} parcel AWB entries!` });
-      if (firstParcelId) {
-        setLocation(`/parcels/${firstParcelId}`);
-      } else {
-        setLocation("/parcels");
-      }
+      toast({ title: "Booking Confirmed", description: `Successfully created booking with ${itemTabs.length} items!` });
+      setLocation(`/parcels/${res.id}`);
     } catch (err) {
-      toast({ title: "Booking Failed", description: "Could not create one or more parcels", variant: "destructive" });
+      toast({ title: "Booking Failed", description: "Could not create parcel booking", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

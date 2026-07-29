@@ -147,13 +147,35 @@ export default function ParcelDetail() {
 
         <Card>
           <CardHeader><CardTitle className="text-base">Parcel Info</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-muted-foreground">Type:</span> <span className="font-medium">{parcel.itemName || "Item"}</span></div>
-            <div><span className="text-muted-foreground">Boxes:</span> <span className="font-medium">{parcel.numBoxes}</span></div>
-            <div><span className="text-muted-foreground">Weight:</span> <span className="font-medium">{parcel.weightKg} kg</span></div>
-            <div><span className="text-muted-foreground">Charges:</span> <span className="font-medium">₹{parcel.charges}</span></div>
-            <div><span className="text-muted-foreground">Destination:</span> <span className="font-medium">{parcel.destinationHubCode}</span></div>
-            {parcel.remarks && <div className="col-span-2"><span className="text-muted-foreground">Remarks:</span> {parcel.remarks}</div>}
+          <CardContent className="gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 pb-4">
+              <div><span className="text-muted-foreground">Total Boxes:</span> <span className="font-medium">{parcel.numBoxes}</span></div>
+              <div><span className="text-muted-foreground">Total Weight:</span> <span className="font-medium">{parcel.weightKg} kg</span></div>
+              <div><span className="text-muted-foreground">Total Charges:</span> <span className="font-medium">₹{parcel.charges}</span></div>
+              <div><span className="text-muted-foreground">Destination:</span> <span className="font-medium">{parcel.destinationHubCode}</span></div>
+            </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="font-semibold text-xs text-muted-foreground uppercase mb-2">Items</h4>
+              {parcel.items && parcel.items.length > 0 ? (
+                <div className="space-y-2">
+                  {parcel.items.map((item: any, idx: number) => (
+                    <div key={idx} className="bg-muted/30 p-2 rounded text-xs grid grid-cols-2 gap-1">
+                      <div><span className="text-muted-foreground">Type:</span> {item.itemName}</div>
+                      <div><span className="text-muted-foreground">Boxes:</span> {item.numBoxes}</div>
+                      <div><span className="text-muted-foreground">Weight:</span> {item.weightKg} kg</div>
+                      <div><span className="text-muted-foreground">Charges:</span> ₹{item.charges}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-muted-foreground">Type:</span> <span className="font-medium">{parcel.itemName || "Item"}</span></div>
+                  <div><span className="text-muted-foreground">Boxes:</span> <span className="font-medium">{parcel.numBoxes}</span></div>
+                </div>
+              )}
+            </div>
+            {parcel.remarks && <div className="mt-4"><span className="text-muted-foreground">Remarks:</span> {parcel.remarks}</div>}
           </CardContent>
         </Card>
         <Card>

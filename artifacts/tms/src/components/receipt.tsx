@@ -71,17 +71,35 @@ export function Receipt({ parcel }: { parcel: any }) {
             <div className="col-span-3 p-1">Weight</div>
           </div>
           
-          <div className="grid grid-cols-12 flex-1 text-sm">
-            <div className="col-span-2 p-2 border-r border-black text-center">{parcel.numBoxes}</div>
-            <div className="col-span-7 p-2 border-r border-black">{parcel.itemName || "Item"}</div>
-            <div className="col-span-3 p-2 text-center relative">
-              {parcel.weightKg}
+          {parcel.items && parcel.items.length > 0 ? (
+            <div className="flex-1 text-sm relative">
+              {parcel.items.map((item: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-12 w-full">
+                  <div className="col-span-2 p-2 border-r border-black text-center">{item.numBoxes}</div>
+                  <div className="col-span-7 p-2 border-r border-black">{item.itemName || "Item"}</div>
+                  <div className="col-span-3 p-2 text-center">
+                    {item.weightKg}
+                  </div>
+                </div>
+              ))}
               
-              <div className="absolute right-[-40px] top-1/2 transform -translate-y-1/2 rotate-90 origin-right text-lg tracking-widest text-black whitespace-nowrap opacity-60">
-                TO-PAY
+              <div className="absolute right-[-40px] top-1/2 transform -translate-y-1/2 rotate-90 origin-right text-lg tracking-widest text-black whitespace-nowrap opacity-60 z-10">
+                {parcel.paymentType ? parcel.paymentType.toUpperCase() : "TO-PAY"}
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-12 flex-1 text-sm">
+              <div className="col-span-2 p-2 border-r border-black text-center">{parcel.numBoxes}</div>
+              <div className="col-span-7 p-2 border-r border-black">{parcel.itemName || "Item"}</div>
+              <div className="col-span-3 p-2 text-center relative">
+                {parcel.weightKg}
+                
+                <div className="absolute right-[-40px] top-1/2 transform -translate-y-1/2 rotate-90 origin-right text-lg tracking-widest text-black whitespace-nowrap opacity-60">
+                  {parcel.paymentType ? parcel.paymentType.toUpperCase() : "TO-PAY"}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
             <div className="text-center font-bold" style={{ color: '#6366f1' }}>

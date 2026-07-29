@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, parcelsTable, hubsTable, staffTable, itemsTable } from "@workspace/db";
+import { db, parcelsTable, hubsTable, staffTable, itemsTable, parcelItemsTable } from "@workspace/db";
 import { eq, and, gte, lte, desc, sql, or, ilike } from "drizzle-orm";
 import { requireAuth } from "../lib/auth";
 import { generateAwbNumber } from "../lib/awb";
@@ -46,6 +46,22 @@ async function enrichParcel(p: any) {
     const [itm] = await db.select({ name: itemsTable.name }).from(itemsTable).where(eq(itemsTable.id, p.itemId)).limit(1);
     itemName = itm?.name ?? null;
   }
+  
+  // Fetch parcel items
+  const pItems = await db
+    .select({
+      id: parcelItemsTable.id,
+      itemId: parcelItemsTable.itemId,
+      itemName: itemsTable.name,
+      numBoxes: parcelItemsTable.numBoxes,
+      weightKg: parcelItemsTable.weightKg,
+      charges: parcelItemsTable.charges,
+      remarks: parcelItemsTable.remarks,
+    })
+    .from(parcelItemsTable)
+    .leftJoin(itemsTable, eq(parcelItemsTable.itemId, itemsTable.id))
+    .where(eq(parcelItemsTable.parcelId, p.id));
+
   return {
     ...p,
     weightKg: parseFloat(p.weightKg),
@@ -56,6 +72,11 @@ async function enrichParcel(p: any) {
     destinationHubCode: dst?.hubCode ?? null,
     itemName,
     bookedByName,
+    items: pItems.map(pi => ({
+      ...pi,
+      weightKg: parseFloat(pi.weightKg as string),
+      charges: parseFloat(pi.charges as string)
+    })),
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
@@ -86,14 +107,49 @@ router.get("/parcels", requireAuth, async (req, res) => {
 
 router.post("/parcels", requireAuth, async (req, res) => {
   const staff = (req as any).staff;
-  const { senderName, senderPhone, senderEmail, senderAddress, numBoxes, weightKg, itemId, charges, handlingFee, totalAmount, paymentType, remarks, destinationHubId } = req.body;
+  const { senderName, senderPhone, senderEmail, senderAddress, handlingFee, paymentType, destinationHubId } = req.body;
+  
+  // If we receive an array of items (new format)
+  const incomingItems = req.body.items && Array.isArray(req.body.items) ? req.body.items : [{
+    itemId: req.body.itemId,
+    numBoxes: req.body.numBoxes,
+    weightKg: req.body.weightKg,
+    charges: req.body.charges,
+    remarks: req.body.remarks
+  }];
+
+  // Calculate totals
+  const totalBoxes = incomingItems.reduce((acc, curr) => acc + (Number(curr.numBoxes) || 0), 0);
+  const totalWeight = incomingItems.reduce((acc, curr) => acc + (Number(curr.weightKg) || 0), 0);
+  const totalCharges = incomingItems.reduce((acc, curr) => acc + (Number(curr.charges) || 0), 0);
+  const parsedHandlingFee = Number(handlingFee) || 0;
+  const totalAmount = totalCharges + parsedHandlingFee;
+  
   const awbNumber = await generateAwbNumber();
   const [parcel] = await db.insert(parcelsTable).values({
     awbNumber, senderName, senderPhone, senderEmail: senderEmail || null, senderAddress,
-    numBoxes, weightKg: String(weightKg), itemId, charges: String(charges), handlingFee: String(handlingFee || 0), totalAmount: String(totalAmount || charges), paymentType: paymentType || 'To-Pay', remarks: remarks || null,
-    destinationHubId, currentStatus: "RECEIVED_AT_ORIGIN", bookedBy: staff.id,
+    numBoxes: totalBoxes, 
+    weightKg: String(totalWeight), 
+    charges: String(totalCharges), 
+    handlingFee: String(parsedHandlingFee), 
+    totalAmount: String(totalAmount), 
+    paymentType: paymentType || 'To-Pay', 
+    destinationHubId, 
+    currentStatus: "RECEIVED_AT_ORIGIN", 
+    bookedBy: staff.id,
   }).returning();
 
+  if (incomingItems.length > 0) {
+    const itemsToInsert = incomingItems.map(item => ({
+      parcelId: parcel.id,
+      itemId: item.itemId,
+      numBoxes: Number(item.numBoxes),
+      weightKg: String(item.weightKg),
+      charges: String(item.charges),
+      remarks: item.remarks || null
+    }));
+    await db.insert(parcelItemsTable).values(itemsToInsert);
+  }
 
   await createAuditLog({ action: "CREATE", entityType: "parcel", entityId: parcel.id, newValue: { awbNumber, currentStatus: "RECEIVED_AT_ORIGIN" }, performedBy: staff.id, description: `Booked parcel ${awbNumber}` });
 
