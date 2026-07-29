@@ -10,19 +10,26 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface HubFormData { hubName: string; hubCode: string; address: string; contactNumber: string; }
+interface HubFormData { hubName: string; hubCode: string; address: string; contactNumber: string; parentHubId: string; }
 
-function HubForm({ hub, onClose }: { hub?: any; onClose: () => void }) {
+function HubForm({ hub, hubs, onClose }: { hub?: any; hubs: any[]; onClose: () => void }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const createHub = useCreateHub();
   const updateHub = useUpdateHub();
-  const { register, handleSubmit, formState: { errors } } = useForm<HubFormData>({
-    defaultValues: hub ? { hubName: hub.hubName, hubCode: hub.hubCode, address: hub.address, contactNumber: hub.contactNumber } : {},
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<HubFormData>({
+    defaultValues: hub ? { hubName: hub.hubName, hubCode: hub.hubCode, address: hub.address, contactNumber: hub.contactNumber, parentHubId: hub.parentHubId ? String(hub.parentHubId) : "none" } : { parentHubId: "none" },
   });
+  
+  const parentHubId = watch("parentHubId");
 
-  const onSubmit = (data: HubFormData) => {
+  const onSubmit = (formData: HubFormData) => {
+    const data = {
+      ...formData,
+      parentHubId: formData.parentHubId === "none" ? null : parseInt(formData.parentHubId),
+    };
     const action = hub
       ? updateHub.mutateAsync({ hubId: hub.id, data })
       : createHub.mutateAsync({ data });
@@ -52,6 +59,20 @@ function HubForm({ hub, onClose }: { hub?: any; onClose: () => void }) {
       <div className="space-y-1">
         <Label>Contact Number</Label>
         <Input {...register("contactNumber", { required: true })} data-testid="input-hub-contact" />
+      </div>
+      <div className="space-y-1">
+        <Label>Parent Branch (Optional)</Label>
+        <Select value={parentHubId} onValueChange={(v) => setValue("parentHubId", v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Parent Branch" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">-- None (Main Branch) --</SelectItem>
+            {hubs.filter(h => h.id !== hub?.id && !h.parentHubId).map((h) => (
+              <SelectItem key={h.id} value={String(h.id)}>{h.hubName}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <Button type="submit" className="w-full" disabled={isPending} data-testid="button-save-hub">
         {isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
@@ -91,7 +112,7 @@ export default function Hubs() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>New Hub</DialogTitle></DialogHeader>
-            <HubForm onClose={() => setCreateOpen(false)} />
+            <HubForm hubs={hubs} onClose={() => setCreateOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
@@ -112,6 +133,11 @@ export default function Hubs() {
                     {hub.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </div>
+                {hub.parentHubId && (
+                  <Badge variant="outline" className="mb-2">
+                    Sub-branch of {hubs.find(h => h.id === hub.parentHubId)?.hubName}
+                  </Badge>
+                )}
                 <p className="text-sm text-muted-foreground">{hub.address}</p>
                 <p className="text-sm">{hub.contactNumber}</p>
                 <div className="flex gap-2">
@@ -123,7 +149,7 @@ export default function Hubs() {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader><DialogTitle>Edit Hub</DialogTitle></DialogHeader>
-                      {editHub && <HubForm hub={editHub} onClose={() => setEditHub(null)} />}
+                      {editHub && <HubForm hub={editHub} hubs={hubs} onClose={() => setEditHub(null)} />}
                     </DialogContent>
                   </Dialog>
                   <Button

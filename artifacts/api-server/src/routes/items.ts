@@ -18,7 +18,8 @@ router.post("/", async (req, res) => {
   try {
     const schema = z.object({
       name: z.string(),
-      defaultPrice: z.number()
+      defaultPrice: z.number(),
+      defaultHandlingFee: z.number().optional().default(0)
     });
     const body = schema.parse(req.body);
 
@@ -26,7 +27,8 @@ router.post("/", async (req, res) => {
       .insert(itemsTable)
       .values({
         name: body.name,
-        defaultPrice: body.defaultPrice.toString()
+        defaultPrice: body.defaultPrice.toString(),
+        defaultHandlingFee: body.defaultHandlingFee.toString()
       })
       .returning();
 

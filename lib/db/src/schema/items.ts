@@ -6,6 +6,7 @@ export const itemsTable = pgTable("items", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
   defaultPrice: numeric("default_price", { precision: 10, scale: 2 }).notNull(),
+  defaultHandlingFee: numeric("default_handling_fee", { precision: 10, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

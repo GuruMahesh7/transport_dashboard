@@ -17,8 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 const schema = z.object({
   senderName: z.string().min(1, "Required"),
-  senderPhone: z.string().min(10, "Valid phone required"),
-  senderEmail: z.string().email("Valid email required").optional().or(z.literal("")),
+  senderPhone: z.string().optional().or(z.literal("")),
   senderAddress: z.string().min(1, "Required"),
   charges: z.coerce.number().min(0),
   handlingFee: z.coerce.number().min(0),
@@ -43,8 +42,10 @@ export default function ParcelNew() {
 
   const [newItemName, setNewItemName] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
+  const [newItemHandling, setNewItemHandling] = useState("");
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMainBranchId, setSelectedMainBranchId] = useState<number | null>(null);
 
   // Local state for tabs
   const [itemTabs, setItemTabs] = useState<Array<{
@@ -54,8 +55,9 @@ export default function ParcelNew() {
     weightKg: number;
     remarks: string;
     charges: number;
+    handlingFee?: number;
   }>>([
-    { id: "1", itemId: 0, numBoxes: 1, weightKg: 1, remarks: "", charges: 0 }
+    { id: "1", itemId: 0, numBoxes: 1, weightKg: 1, remarks: "", charges: 0, handlingFee: 0 }
   ]);
   const [activeTabId, setActiveTabId] = useState<string>("1");
 
@@ -82,11 +84,13 @@ export default function ParcelNew() {
         const updated = { ...tab, [key]: value };
         if (key === "itemId") {
           const itm = items.find(i => i.id === value);
-          updated.charges = itm ? itm.defaultPrice * tab.numBoxes : 0;
+          updated.charges = itm ? Number(itm.defaultPrice || 0) * tab.numBoxes : 0;
+          updated.handlingFee = itm ? Number(itm.defaultHandlingFee || 0) * tab.numBoxes : 0;
         }
         if (key === "numBoxes") {
           const itm = items.find(i => i.id === tab.itemId);
-          updated.charges = itm ? itm.defaultPrice * value : 0;
+          updated.charges = itm ? Number(itm.defaultPrice || 0) * value : 0;
+          updated.handlingFee = itm ? Number(itm.defaultHandlingFee || 0) * value : 0;
         }
         return updated;
       }
@@ -96,11 +100,16 @@ export default function ParcelNew() {
 
   // Sum charges across all tabs
   const totalCharges = itemTabs.reduce((sum, tab) => sum + (tab.charges || 0), 0);
+  const totalHandlingFee = itemTabs.reduce((sum, tab) => sum + (tab.handlingFee || 0), 0);
 
   // Sync charges to react-hook-form
   useEffect(() => {
     setValue("charges", totalCharges);
   }, [totalCharges, setValue]);
+
+  useEffect(() => {
+    setValue("handlingFee", totalHandlingFee);
+  }, [totalHandlingFee, setValue]);
 
   // Keep total amount in sync
   useEffect(() => {
@@ -135,8 +144,6 @@ export default function ParcelNew() {
         data: {
           senderName: data.senderName,
           senderPhone: data.senderPhone,
-          senderEmail: data.senderEmail || undefined,
-          senderAddress: data.senderAddress,
           destinationHubId: data.destinationHubId,
           paymentType: data.paymentType,
           handlingFee: Number(data.handlingFee) || 0,
@@ -156,13 +163,14 @@ export default function ParcelNew() {
 
   const handleAddItem = () => {
     if (!newItemName || !newItemPrice) return;
-    createItem.mutate({ data: { name: newItemName, defaultPrice: parseFloat(newItemPrice) } }, {
+    createItem.mutate({ data: { name: newItemName, defaultPrice: parseFloat(newItemPrice), defaultHandlingFee: parseFloat(newItemHandling || "0") } }, {
       onSuccess: (newItem) => {
         queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
         updateActiveTab("itemId", newItem.id);
         setIsAddItemOpen(false);
         setNewItemName("");
         setNewItemPrice("");
+        setNewItemHandling("");
         toast({ title: "Item Added", description: `${newItem.name} has been added.` });
       },
       onError: (err: any) => {
@@ -203,19 +211,37 @@ export default function ParcelNew() {
         {/* Row 1: Route & Billing banner */}
         <Card className="shadow-sm shrink-0">
           <CardContent className="py-2 px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
               <div className="flex flex-col">
                 <Label className="text-muted-foreground uppercase text-[10px] font-bold">From Hub</Label>
                 <p className="font-extrabold text-sm text-slate-800 dark:text-slate-200">HYDERABAD</p>
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="destinationHubId" className="text-xs font-semibold">To Hub *</Label>
-                <Select onValueChange={v => setValue("destinationHubId", parseInt(v))}>
-                  <SelectTrigger id="destinationHubId" className="h-8 font-medium bg-background text-xs">
-                    <SelectValue placeholder="Select destination" />
+                <Label htmlFor="mainBranchId" className="text-xs font-semibold">Main Branch *</Label>
+                <Select onValueChange={v => {
+                  setSelectedMainBranchId(parseInt(v));
+                  setValue("destinationHubId", 0); // reset sub-branch
+                }}>
+                  <SelectTrigger id="mainBranchId" className="h-8 font-medium bg-background text-xs">
+                    <SelectValue placeholder="Select Main Branch" />
                   </SelectTrigger>
                   <SelectContent>
-                    {activeHubs.map(h => (
+                    {activeHubs.filter(h => !h.parentHubId).map(h => (
+                      <SelectItem key={h.id} value={String(h.id)}>
+                        {h.hubName} ({h.hubCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="destinationHubId" className="text-xs font-semibold">Sub Branch *</Label>
+                <Select disabled={!selectedMainBranchId} onValueChange={v => setValue("destinationHubId", parseInt(v))}>
+                  <SelectTrigger id="destinationHubId" className="h-8 font-medium bg-background text-xs">
+                    <SelectValue placeholder="Select Sub Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeHubs.filter(h => h.parentHubId === selectedMainBranchId).map(h => (
                       <SelectItem key={h.id} value={String(h.id)}>
                         {h.hubName} ({h.hubCode})
                       </SelectItem>
@@ -257,7 +283,7 @@ export default function ParcelNew() {
                     {errors.senderName && <p className="text-destructive text-[10px]">{errors.senderName.message}</p>}
                   </div>
                   <div className="space-y-0.5">
-                    <Label htmlFor="senderPhone" className="text-[11px] font-semibold">Phone *</Label>
+                    <Label htmlFor="senderPhone" className="text-[11px] font-semibold">Phone (Optional)</Label>
                     <Input id="senderPhone" className="h-8 text-xs bg-background" {...register("senderPhone")} placeholder="10-digit number" />
                     {errors.senderPhone && <p className="text-destructive text-[10px]">{errors.senderPhone.message}</p>}
                   </div>
@@ -269,9 +295,7 @@ export default function ParcelNew() {
                     {errors.senderAddress && <p className="text-destructive text-[10px]">{errors.senderAddress.message}</p>}
                   </div>
                   <div className="space-y-0.5">
-                    <Label htmlFor="senderEmail" className="text-[11px] font-semibold">Email (Optional)</Label>
-                    <Input id="senderEmail" type="email" className="h-8 text-xs bg-background" {...register("senderEmail")} placeholder="Email" />
-                    {errors.senderEmail && <p className="text-destructive text-[10px]">{errors.senderEmail.message}</p>}
+                    {/* Empty for grid layout balance */}
                   </div>
                 </div>
               </div>
@@ -422,7 +446,7 @@ export default function ParcelNew() {
             <div className="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
               <div className="flex-grow grid grid-cols-3 gap-3">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="charges" className="text-xs font-semibold text-muted-foreground">Freight Charges (₹)</Label>
+                  <Label htmlFor="charges" className="text-xs font-semibold text-muted-foreground">Amount (₹)</Label>
                   <Input id="charges" type="number" step="0.01" className="h-9 font-mono bg-background text-xs" {...register("charges")} />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -465,6 +489,10 @@ export default function ParcelNew() {
             <div className="space-y-2">
               <Label htmlFor="newItemPrice" className="text-xs">Base Price (₹)</Label>
               <Input id="newItemPrice" className="h-8 text-xs" type="number" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} placeholder="Price per unit box" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newItemHandling" className="text-xs">Handling Fee (₹)</Label>
+              <Input id="newItemHandling" className="h-8 text-xs" type="number" value={newItemHandling} onChange={e => setNewItemHandling(e.target.value)} placeholder="Handling fee per box" />
             </div>
           </div>
           <DialogFooter className="gap-2">

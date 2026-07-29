@@ -10,5 +10,6 @@ export interface Item {
   id: number;
   name: string;
   defaultPrice: number;
-  createdAt: string;
+  defaultHandlingFee: number;
+  createdAt?: Date;
 }

@@ -14,7 +14,6 @@ export interface Parcel {
   /** @nullable */
   senderEmail?: string | null;
   senderAddress?: string;
-  /** @nullable */
   numBoxes: number;
   weightKg: number;
   itemId: number;

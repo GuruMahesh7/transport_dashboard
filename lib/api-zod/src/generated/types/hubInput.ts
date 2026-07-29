@@ -11,4 +11,6 @@ export interface HubInput {
   hubCode: string;
   address: string;
   contactNumber: string;
+  /** @nullable */
+  parentHubId?: number | null;
 }

@@ -9,4 +9,5 @@
 export interface ItemInput {
   name: string;
   defaultPrice: number;
+  defaultHandlingFee?: number;
 }

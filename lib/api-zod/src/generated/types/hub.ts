@@ -13,5 +13,7 @@ export interface Hub {
   address: string;
   contactNumber: string;
   isActive: boolean;
+  /** @nullable */
+  parentHubId?: number | null;
   createdAt: string;
 }

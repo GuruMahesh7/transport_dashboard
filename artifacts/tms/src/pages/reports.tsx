@@ -114,7 +114,9 @@ export default function Reports() {
                         <p className="font-semibold text-slate-850">{p.senderName}</p>
                         <p className="text-[9px] text-slate-500">{p.senderPhone}</p>
                       </td>
-                      <td className="border-r border-slate-300 px-2 py-1 text-slate-700">{p.itemName || "Item"}</td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-slate-700">
+                        {p.items?.length > 0 ? p.items.map((i: any) => i.itemName || "Item").join(', ') : (p.itemName || "Item")}
+                      </td>
                       <td className="border-r border-slate-300 px-2 py-1 text-center font-mono">{p.numBoxes}</td>
                       <td className="border-r border-slate-300 px-2 py-1 text-center font-mono">{p.weightKg}</td>
                       <td className="border-r border-slate-300 px-2 py-1 text-right font-mono">₹{Number(p.charges).toFixed(2)}</td>
@@ -172,7 +174,9 @@ export default function Reports() {
                           <div>{p.senderName}</div>
                           <div className="text-xs text-muted-foreground">{p.senderPhone}</div>
                         </td>
-                        <td className="px-4 py-3">{p.itemName || "Item"}</td>
+                        <td className="px-4 py-3">
+                          {p.items?.length > 0 ? p.items.map((i: any) => i.itemName || "Item").join(', ') : (p.itemName || "Item")}
+                        </td>
                         <td className="px-4 py-3">{p.numBoxes}</td>
                         <td className="px-4 py-3">{p.weightKg}</td>
                         <td className="px-4 py-3 text-right">₹{Number(p.charges).toFixed(2)}</td>

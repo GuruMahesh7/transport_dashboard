@@ -1,4 +1,4 @@
-import { pgTable, text, serial, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,6 +9,7 @@ export const hubsTable = pgTable("hubs", {
   address: text("address").notNull(),
   contactNumber: text("contact_number").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  parentHubId: integer("parent_hub_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

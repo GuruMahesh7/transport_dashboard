@@ -70,6 +70,7 @@ export const ListHubsResponseItem = zod.object({
   "address": zod.string(),
   "contactNumber": zod.string(),
   "isActive": zod.boolean(),
+  "parentHubId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 export const ListHubsResponse = zod.array(ListHubsResponseItem)
@@ -82,7 +83,8 @@ export const CreateHubBody = zod.object({
   "hubName": zod.string(),
   "hubCode": zod.string(),
   "address": zod.string(),
-  "contactNumber": zod.string()
+  "contactNumber": zod.string(),
+  "parentHubId": zod.number().nullish()
 })
 
 
@@ -100,6 +102,7 @@ export const GetHubResponse = zod.object({
   "address": zod.string(),
   "contactNumber": zod.string(),
   "isActive": zod.boolean(),
+  "parentHubId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 
@@ -115,7 +118,8 @@ export const UpdateHubBody = zod.object({
   "hubName": zod.string().optional(),
   "hubCode": zod.string().optional(),
   "address": zod.string().optional(),
-  "contactNumber": zod.string().optional()
+  "contactNumber": zod.string().optional(),
+  "parentHubId": zod.number().nullish()
 })
 
 export const UpdateHubResponse = zod.object({
@@ -125,6 +129,7 @@ export const UpdateHubResponse = zod.object({
   "address": zod.string(),
   "contactNumber": zod.string(),
   "isActive": zod.boolean(),
+  "parentHubId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 
@@ -143,6 +148,7 @@ export const ToggleHubActiveResponse = zod.object({
   "address": zod.string(),
   "contactNumber": zod.string(),
   "isActive": zod.boolean(),
+  "parentHubId": zod.number().nullish(),
   "createdAt": zod.string()
 })
 
@@ -247,7 +253,8 @@ export const ListItemsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "defaultPrice": zod.number(),
-  "createdAt": zod.string()
+  "defaultHandlingFee": zod.number(),
+  "createdAt": zod.coerce.date().optional()
 })
 export const ListItemsResponse = zod.array(ListItemsResponseItem)
 
@@ -257,7 +264,8 @@ export const ListItemsResponse = zod.array(ListItemsResponseItem)
  */
 export const CreateItemBody = zod.object({
   "name": zod.string(),
-  "defaultPrice": zod.number()
+  "defaultPrice": zod.number(),
+  "defaultHandlingFee": zod.number().optional()
 })
 
 
@@ -307,7 +315,7 @@ export const ListParcelsResponse = zod.object({
  */
 export const CreateParcelBody = zod.object({
   "senderName": zod.string(),
-  "senderPhone": zod.string(),
+  "senderPhone": zod.string().optional(),
   "senderEmail": zod.string().optional(),
   "senderAddress": zod.string(),
   "numBoxes": zod.number(),

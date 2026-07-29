@@ -8,7 +8,7 @@
 
 export interface ParcelInput {
   senderName: string;
-  senderPhone: string;
+  senderPhone?: string;
   senderEmail?: string;
   senderAddress: string;
   numBoxes: number;

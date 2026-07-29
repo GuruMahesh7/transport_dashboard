@@ -44,6 +44,8 @@ export interface Hub {
   address: string;
   contactNumber: string;
   isActive: boolean;
+  /** @nullable */
+  parentHubId?: number | null;
   createdAt: string;
 }
 
@@ -52,6 +54,8 @@ export interface HubInput {
   hubCode: string;
   address: string;
   contactNumber: string;
+  /** @nullable */
+  parentHubId?: number | null;
 }
 
 export interface HubUpdate {
@@ -59,6 +63,8 @@ export interface HubUpdate {
   hubCode?: string;
   address?: string;
   contactNumber?: string;
+  /** @nullable */
+  parentHubId?: number | null;
 }
 
 export interface StaffUpdate {
@@ -84,7 +90,6 @@ export interface Parcel {
   /** @nullable */
   senderEmail?: string | null;
   senderAddress?: string;
-  /** @nullable */
   numBoxes: number;
   weightKg: number;
   itemId: number;
@@ -132,7 +137,6 @@ export interface ParcelDetail {
   /** @nullable */
   senderEmail?: string | null;
   senderAddress?: string;
-  /** @nullable */
   numBoxes: number;
   weightKg: number;
   itemId: number;
@@ -165,7 +169,7 @@ export interface ParcelListResponse {
 
 export interface ParcelInput {
   senderName: string;
-  senderPhone: string;
+  senderPhone?: string;
   senderEmail?: string;
   senderAddress: string;
   numBoxes: number;
@@ -341,12 +345,14 @@ export interface Item {
   id: number;
   name: string;
   defaultPrice: number;
-  createdAt: string;
+  defaultHandlingFee: number;
+  createdAt?: string;
 }
 
 export interface ItemInput {
   name: string;
   defaultPrice: number;
+  defaultHandlingFee?: number;
 }
 
 export type ListStaffParams = {

@@ -917,6 +917,8 @@ components:
           type: string
         isActive:
           type: boolean
+        parentHubId:
+          type: ["integer", "null"]
         createdAt:
           type: string
 
@@ -932,6 +934,8 @@ components:
           type: string
         contactNumber:
           type: string
+        parentHubId:
+          type: ["integer", "null"]
 
     HubUpdate:
       type: object
@@ -944,6 +948,8 @@ components:
           type: string
         contactNumber:
           type: string
+        parentHubId:
+          type: ["integer", "null"]
 
     StaffUpdate:
       type: object
@@ -1104,7 +1110,7 @@ components:
 
     ParcelInput:
       type: object
-      required: [senderName, senderPhone, senderAddress, numBoxes, weightKg, itemId, charges, destinationHubId]
+      required: [senderName, senderAddress, numBoxes, weightKg, itemId, charges, destinationHubId]
       properties:
         senderName:
           type: string
@@ -1421,7 +1427,11 @@ components:
 
     Item:
       type: object
-      required: [id, name, defaultPrice, createdAt]
+      required:
+        - id
+        - name
+        - defaultPrice
+        - defaultHandlingFee
       properties:
         id:
           type: integer
@@ -1429,14 +1439,21 @@ components:
           type: string
         defaultPrice:
           type: number
+        defaultHandlingFee:
+          type: number
         createdAt:
           type: string
+          format: date-time
 
     ItemInput:
       type: object
-      required: [name, defaultPrice]
+      required:
+        - name
+        - defaultPrice
       properties:
         name:
           type: string
         defaultPrice:
+          type: number
+        defaultHandlingFee:
           type: number

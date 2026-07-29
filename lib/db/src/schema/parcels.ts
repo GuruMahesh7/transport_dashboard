@@ -10,7 +10,7 @@ export const parcelsTable = pgTable("parcels", {
   id: serial("id").primaryKey(),
   awbNumber: text("awb_number").notNull().unique(),
   senderName: text("sender_name").notNull(),
-  senderPhone: text("sender_phone").notNull(),
+  senderPhone: text("sender_phone"),
   senderEmail: text("sender_email"),
   senderAddress: text("sender_address").notNull(),
   numBoxes: integer("num_boxes").notNull().default(1),

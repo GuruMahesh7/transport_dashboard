@@ -22,8 +22,8 @@ router.get("/hubs/:hubId", requireAuth, async (req, res) => {
 });
 
 router.post("/hubs", requireAuth, requireRole("SUPER_ADMIN"), async (req, res) => {
-  const { hubName, hubCode, address, contactNumber } = req.body;
-  const [hub] = await db.insert(hubsTable).values({ hubName, hubCode, address, contactNumber }).returning();
+  const { hubName, hubCode, address, contactNumber, parentHubId } = req.body;
+  const [hub] = await db.insert(hubsTable).values({ hubName, hubCode, address, contactNumber, parentHubId }).returning();
   const staff = (req as any).staff;
   await createAuditLog({ action: "CREATE", entityType: "hub", entityId: hub.id, newValue: hub, performedBy: staff.id, description: `Created hub ${hubName}` });
   res.status(201).json({ ...hub, createdAt: hub.createdAt.toISOString() });
@@ -31,12 +31,13 @@ router.post("/hubs", requireAuth, requireRole("SUPER_ADMIN"), async (req, res) =
 
 router.patch("/hubs/:hubId", requireAuth, requireRole("SUPER_ADMIN"), async (req, res) => {
   const hubId = parseInt(req.params.hubId as string);
-  const { hubName, hubCode, address, contactNumber } = req.body;
+  const { hubName, hubCode, address, contactNumber, parentHubId } = req.body;
   const updates: any = {};
   if (hubName !== undefined) updates.hubName = hubName;
   if (hubCode !== undefined) updates.hubCode = hubCode;
   if (address !== undefined) updates.address = address;
   if (contactNumber !== undefined) updates.contactNumber = contactNumber;
+  if (parentHubId !== undefined) updates.parentHubId = parentHubId;
 
   const [hub] = await db.update(hubsTable).set(updates).where(eq(hubsTable.id, hubId)).returning();
   if (!hub) { res.status(404).json({ error: "Hub not found" }); return; }
