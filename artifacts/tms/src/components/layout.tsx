@@ -50,8 +50,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-muted/20">
-      <aside className="hidden md:flex w-64 flex-col bg-background border-r">
+    <div className="min-h-screen flex flex-col md:flex-row bg-muted/20 print:bg-white">
+      <aside className="hidden md:flex w-64 flex-col bg-background border-r print:hidden">
         <div className="p-4 border-b h-16 flex items-center">
           <h1 className="font-bold text-xl text-primary">TMS</h1>
           <span className="ml-auto text-xs bg-muted px-2 py-1 rounded">ADMIN</span>
@@ -99,7 +99,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t flex justify-around p-2 z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t flex justify-around p-2 z-50 print:hidden">
         {navItems.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const active = location.startsWith(item.href);
@@ -114,7 +114,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         })}
       </div>
 
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto print:p-0 print:overflow-visible">
         {children}
       </main>
     </div>

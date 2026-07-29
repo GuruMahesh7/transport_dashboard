@@ -26,7 +26,28 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Local print CSS overrides to strip browser headers/footers */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          @page {
+            margin: 0 !important;
+          }
+          html, body, #root, main, .min-h-screen {
+            height: auto !important;
+            min-height: 0 !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body {
+            margin: 1.2cm !important;
+            background: white !important;
+            color: black !important;
+          }
+        }
+      `}} />
+      <div className="flex items-center justify-between print:hidden">
         <div>
           <h2 className="text-2xl font-bold">Reports</h2>
           <p className="text-muted-foreground text-sm">Analytics and performance data</p>
@@ -49,7 +70,7 @@ export default function Reports() {
             <Input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="w-40" data-testid="input-daily-date" />
           </div>
           {daily && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
               <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-blue-600">{daily.totalBooked}</p><p className="text-sm text-muted-foreground">Total Booked</p></CardContent></Card>
               <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-green-600">{daily.totalDelivered}</p><p className="text-sm text-muted-foreground">Delivered</p></CardContent></Card>
               <Card><CardContent className="p-4 text-center"><p className="text-2xl font-bold text-amber-600">{daily.totalPending}</p><p className="text-sm text-muted-foreground">Pending</p></CardContent></Card>
@@ -57,19 +78,72 @@ export default function Reports() {
             </div>
           )}
           
-          <div className="mt-8 hidden print:block">
-            <h3 className="text-xl font-bold mb-4">Daily Report - {dailyDate}</h3>
-            {daily && (
-              <div className="flex gap-8 mb-6">
-                <div><strong>Total Booked:</strong> {daily.totalBooked}</div>
-                <div><strong>Delivered:</strong> {daily.totalDelivered}</div>
-                <div><strong>Pending:</strong> {daily.totalPending}</div>
-                <div><strong>Revenue:</strong> ₹{Number(daily.revenueToday).toFixed(0)}</div>
+          {/* Printable Report Wrapper with clear red borders */}
+          <div className="hidden print:block border-2 border-red-600 p-6 rounded-md space-y-4 font-sans bg-white text-black">
+            {/* Business Header */}
+            <div className="text-center border-b-2 border-red-600 pb-3">
+              <h1 className="text-2xl font-black tracking-wider uppercase text-slate-900">Laxmi Narayana Transport</h1>
+              <p className="text-xs font-semibold tracking-wide text-slate-600">Daily Manifest & Revenue Statement</p>
+              <div className="mt-2 text-[10px] font-mono text-slate-500 flex justify-between px-2">
+                <span>Date: {dailyDate}</span>
+                <span>Generated: {new Date().toLocaleDateString("en-IN")}</span>
               </div>
-            )}
+            </div>
+
+            {/* Manifest Table */}
+            <div className="space-y-2">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">Parcels Booked Summary ({dailyParcels.length})</h3>
+              <table className="w-full text-[11px] border-collapse border border-slate-300">
+                <thead>
+                  <tr className="bg-slate-100 border-b border-slate-300 font-mono uppercase text-[9px] text-slate-600">
+                    <th className="border-r border-slate-300 px-2 py-1 text-left">AWB No.</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-left">Sender</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-left">Cargo Category</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-center">Boxes</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-center">Wt (kg)</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-right">Freight</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-right">Handling</th>
+                    <th className="px-2 py-1 text-right">Total Amt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {dailyParcels.map((p: any) => (
+                    <tr key={p.id}>
+                      <td className="border-r border-slate-300 px-2 py-1 font-mono font-bold text-slate-900">{p.awbNumber}</td>
+                      <td className="border-r border-slate-300 px-2 py-1">
+                        <p className="font-semibold text-slate-850">{p.senderName}</p>
+                        <p className="text-[9px] text-slate-500">{p.senderPhone}</p>
+                      </td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-slate-700">{p.itemName || "Item"}</td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-center font-mono">{p.numBoxes}</td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-center font-mono">{p.weightKg}</td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-right font-mono">₹{Number(p.charges).toFixed(2)}</td>
+                      <td className="border-r border-slate-300 px-2 py-1 text-right font-mono">₹{Number(p.handlingFee || 0).toFixed(2)}</td>
+                      <td className="px-2 py-1 text-right font-mono font-bold text-slate-950">₹{Number(p.totalAmount || p.charges).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  {dailyParcels.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="text-center py-4 italic text-slate-500">No parcels booked on this date.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Manifest Signatures */}
+            <div className="pt-8 flex justify-between text-[10px] font-mono border-t border-dashed border-slate-300 mt-6">
+              <div>
+                <span className="border-t border-slate-400 pt-1 px-4">Authorized Signature</span>
+              </div>
+              <div>
+                <span className="border-t border-slate-400 pt-1 px-4">Prepared By (Staff)</span>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 print:mt-4">
+          {/* Screen-Only Table Layout */}
+          <div className="mt-8 print:hidden">
             <h3 className="text-lg font-bold mb-4">Parcels Booked ({dailyParcels.length})</h3>
             {dailyParcelsLoading ? (
               <div className="text-muted-foreground">Loading parcels...</div>
