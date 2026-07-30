@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 const schema = z.object({
   senderName: z.string().min(1, "Required"),
   senderPhone: z.string().optional().or(z.literal("")),
-  senderAddress: z.string().min(1, "Required"),
+  senderAddress: z.string().optional().or(z.literal("")),
   charges: z.coerce.number().min(0),
   handlingFee: z.coerce.number().min(0),
   totalAmount: z.coerce.number().min(0),
@@ -144,6 +144,7 @@ export default function ParcelNew() {
         data: {
           senderName: data.senderName,
           senderPhone: data.senderPhone,
+          senderAddress: data.senderAddress,
           destinationHubId: data.destinationHubId,
           paymentType: data.paymentType,
           handlingFee: Number(data.handlingFee) || 0,
@@ -290,7 +291,7 @@ export default function ParcelNew() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-0.5">
-                    <Label htmlFor="senderAddress" className="text-[11px] font-semibold">Address *</Label>
+                    <Label htmlFor="senderAddress" className="text-[11px] font-semibold">Address (Optional)</Label>
                     <Input id="senderAddress" className="h-8 text-xs bg-background" {...register("senderAddress")} placeholder="Full address" />
                     {errors.senderAddress && <p className="text-destructive text-[10px]">{errors.senderAddress.message}</p>}
                   </div>

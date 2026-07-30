@@ -53,12 +53,12 @@ function HubForm({ hub, hubs, onClose }: { hub?: any; hubs: any[]; onClose: () =
         <Input {...register("hubCode", { required: true })} maxLength={5} className="uppercase" data-testid="input-hub-code" />
       </div>
       <div className="space-y-1">
-        <Label>Address</Label>
-        <Input {...register("address", { required: true })} data-testid="input-hub-address" />
+        <Label>Address (Optional)</Label>
+        <Input {...register("address")} data-testid="input-hub-address" />
       </div>
       <div className="space-y-1">
-        <Label>Contact Number</Label>
-        <Input {...register("contactNumber", { required: true })} data-testid="input-hub-contact" />
+        <Label>Contact Number (Optional)</Label>
+        <Input {...register("contactNumber")} data-testid="input-hub-contact" />
       </div>
       <div className="space-y-1">
         <Label>Parent Branch (Optional)</Label>

@@ -12,7 +12,7 @@ export const parcelsTable = pgTable("parcels", {
   senderName: text("sender_name").notNull(),
   senderPhone: text("sender_phone"),
   senderEmail: text("sender_email"),
-  senderAddress: text("sender_address").notNull(),
+  senderAddress: text("sender_address"),
   numBoxes: integer("num_boxes").notNull().default(1),
   weightKg: numeric("weight_kg", { precision: 10, scale: 2 }).notNull(),
   itemId: integer("item_id").references(() => itemsTable.id), // Optional for new multi-item bookings
