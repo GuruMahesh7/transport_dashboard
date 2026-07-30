@@ -32,15 +32,18 @@ export default function Parcels() {
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [hubId, setHubId] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [subHubId, setSubHubId] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [search, setSearch] = useState("");
   const limit = 20;
 
   const params: any = { page, limit };
-  if (hubId && hubId !== "ALL") params.hubId = parseInt(hubId);
-  if (status && status !== "ALL") params.status = status;
+  
+  // If subHubId is selected, use that, otherwise use hubId
+  const activeHubId = (subHubId && subHubId !== "ALL") ? subHubId : ((hubId && hubId !== "ALL") ? hubId : undefined);
+  if (activeHubId) params.hubId = parseInt(activeHubId);
+  
   if (dateFrom) params.dateFrom = dateFrom;
   if (dateTo) params.dateTo = dateTo;
 
@@ -83,23 +86,23 @@ export default function Parcels() {
         </div>
         <Select value={hubId} onValueChange={s => { setHubId(s); setPage(1); }}>
           <SelectTrigger className="w-48" data-testid="select-hub-filter">
-            <SelectValue placeholder="All Destination Hubs" />
+            <SelectValue placeholder="All Main Branches" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Destination Hubs</SelectItem>
-            {hubsData?.map(h => (
+            <SelectItem value="ALL">All Main Branches</SelectItem>
+            {hubsData?.filter(h => !h.parentHubId).map(h => (
               <SelectItem key={h.id} value={h.id.toString()}>{h.hubName} ({h.hubCode})</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={status} onValueChange={s => { setStatus(s); setPage(1); }}>
-          <SelectTrigger className="w-40" data-testid="select-status-filter">
-            <SelectValue placeholder="All Statuses" />
+        <Select value={subHubId} onValueChange={s => { setSubHubId(s); setPage(1); }}>
+          <SelectTrigger className="w-48" data-testid="select-subbranch-filter">
+            <SelectValue placeholder="All Sub Branches" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">All Statuses</SelectItem>
-            {Object.keys(STATUS_LABELS).map(key => (
-              <SelectItem key={key} value={key}>{STATUS_LABELS[key]}</SelectItem>
+            <SelectItem value="ALL">All Sub Branches</SelectItem>
+            {hubsData?.filter(h => h.parentHubId).map(h => (
+              <SelectItem key={h.id} value={h.id.toString()}>{h.hubName} ({h.hubCode})</SelectItem>
             ))}
           </SelectContent>
         </Select>
