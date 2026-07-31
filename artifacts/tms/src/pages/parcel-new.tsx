@@ -19,9 +19,9 @@ const schema = z.object({
   senderName: z.string().min(1, "Required"),
   senderPhone: z.string().optional().or(z.literal("")),
   senderAddress: z.string().optional().or(z.literal("")),
-  charges: z.coerce.number().min(0),
-  handlingFee: z.coerce.number().min(0),
-  totalAmount: z.coerce.number().min(0),
+  charges: z.coerce.number().optional(),
+  handlingFee: z.coerce.number().optional(),
+  totalAmount: z.coerce.number().optional(),
   paymentType: z.string(),
   destinationHubId: z.coerce.number().min(1, "Required"),
 });
@@ -221,7 +221,7 @@ export default function ParcelNew() {
                 <Label htmlFor="mainBranchId" className="text-xs font-semibold">Main Branch *</Label>
                 <Select onValueChange={v => {
                   setSelectedMainBranchId(parseInt(v));
-                  setValue("destinationHubId", 0); // reset sub-branch
+                  setValue("destinationHubId", parseInt(v)); // default to main branch
                 }}>
                   <SelectTrigger id="mainBranchId" className="h-8 font-medium bg-background text-xs">
                     <SelectValue placeholder="Select Main Branch" />
@@ -236,12 +236,13 @@ export default function ParcelNew() {
                 </Select>
               </div>
               <div className="flex flex-col gap-1">
-                <Label htmlFor="destinationHubId" className="text-xs font-semibold">Sub Branch *</Label>
-                <Select disabled={!selectedMainBranchId} onValueChange={v => setValue("destinationHubId", parseInt(v))}>
+                <Label htmlFor="destinationHubId" className="text-xs font-semibold">Sub Branch</Label>
+                <Select disabled={!selectedMainBranchId} value={String(watch("destinationHubId") || "")} onValueChange={v => setValue("destinationHubId", parseInt(v))}>
                   <SelectTrigger id="destinationHubId" className="h-8 font-medium bg-background text-xs">
-                    <SelectValue placeholder="Select Sub Branch" />
+                    <SelectValue placeholder="Select Sub Branch (Optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    {selectedMainBranchId && <SelectItem value={String(selectedMainBranchId)}>None (Direct to Main)</SelectItem>}
                     {activeHubs.filter(h => h.parentHubId === selectedMainBranchId).map(h => (
                       <SelectItem key={h.id} value={String(h.id)}>
                         {h.hubName} ({h.hubCode})
