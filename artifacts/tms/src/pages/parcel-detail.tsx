@@ -281,7 +281,7 @@ export default function ParcelDetail() {
             </div>
             <div className="space-y-2">
               <Label>Handling Fee</Label>
-              <Input type="number" step="0.01" name="handlingFee" defaultValue={parcel.handlingFee} required />
+              <Input type="number" step="0.01" name="handlingFee" defaultValue={(parcel as any).handlingFee} required />
             </div>
           </div>
           <DialogFooter>
