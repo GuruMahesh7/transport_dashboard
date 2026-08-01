@@ -35,7 +35,15 @@ function parcelBase() {
 }
 
 async function enrichParcel(p: any) {
-  const [dst] = await db.select({ hubName: hubsTable.hubName, hubCode: hubsTable.hubCode }).from(hubsTable).where(eq(hubsTable.id, p.destinationHubId)).limit(1);
+  const [dst] = await db.select({ hubName: hubsTable.hubName, hubCode: hubsTable.hubCode, parentHubId: hubsTable.parentHubId }).from(hubsTable).where(eq(hubsTable.id, p.destinationHubId)).limit(1);
+  let destinationHubType = "Main Branch";
+  let destinationParentHubName = null;
+  if (dst?.parentHubId) {
+    destinationHubType = "Sub Branch";
+    const [parent] = await db.select({ hubName: hubsTable.hubName }).from(hubsTable).where(eq(hubsTable.id, dst.parentHubId)).limit(1);
+    destinationParentHubName = parent?.hubName ?? null;
+  }
+
   let bookedByName = null;
   if (p.bookedBy) {
     const [bk] = await db.select({ name: staffTable.name }).from(staffTable).where(eq(staffTable.id, p.bookedBy)).limit(1);
@@ -70,6 +78,8 @@ async function enrichParcel(p: any) {
     totalAmount: parseFloat(p.totalAmount || '0'),
     destinationHubName: dst?.hubName ?? null,
     destinationHubCode: dst?.hubCode ?? null,
+    destinationHubType,
+    destinationParentHubName,
     itemName,
     bookedByName,
     items: pItems.map(pi => ({

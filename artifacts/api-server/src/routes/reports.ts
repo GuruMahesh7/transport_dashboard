@@ -44,7 +44,27 @@ router.get("/reports/hub-wise", requireAuth, requireRole("SUPER_ADMIN"), async (
         or(eq(complaintsTable.status, "RAISED"), eq(complaintsTable.status, "INVESTIGATING"))!,
         eq(parcelsTable.destinationHubId, hub.id)
       ));
-    return { hubId: hub.id, hubName: hub.hubName, hubCode: hub.hubCode, bookings: Number(bookings.count), deliveries: Number(deliveries.count), pending: Number(pending.count), revenue: Number(rev.total), complaints: Number(comps.count) };
+      
+    let parentHubName = null;
+    if (hub.parentHubId) {
+      const parentHub = hubs.find(h => h.id === hub.parentHubId);
+      if (parentHub) {
+        parentHubName = parentHub.hubName;
+      }
+    }
+
+    return { 
+      hubId: hub.id, 
+      hubName: hub.hubName, 
+      hubCode: hub.hubCode, 
+      type: hub.parentHubId ? "Sub Branch" : "Main Branch",
+      parentHubName,
+      bookings: Number(bookings.count), 
+      deliveries: Number(deliveries.count), 
+      pending: Number(pending.count), 
+      revenue: Number(rev.total), 
+      complaints: Number(comps.count) 
+    };
   }));
   res.json(result);
 });

@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { useGetParcel, getGetParcelQueryKey, useListComplaints, getListComplaintsQueryKey } from "@workspace/api-client-react";
+import { useGetParcel, getGetParcelQueryKey, useListComplaints, getListComplaintsQueryKey, useUpdateParcel } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Package, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowLeft, Package, CheckCircle2, Loader2, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import QRCode from "qrcode";
 import { Link } from "wouter";
@@ -36,6 +39,9 @@ export default function ParcelDetail() {
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  const updateParcel = useUpdateParcel();
 
   const { data: parcel, isLoading } = useGetParcel(parcelId, {
     query: { enabled: !!parcelId, queryKey: getGetParcelQueryKey(parcelId) },
@@ -116,6 +122,33 @@ export default function ParcelDetail() {
     }
   };
 
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const updates = {
+      senderName: fd.get("senderName") as string,
+      senderPhone: fd.get("senderPhone") as string,
+      senderAddress: fd.get("senderAddress") as string,
+      numBoxes: Number(fd.get("numBoxes")),
+      weightKg: Number(fd.get("weightKg")),
+      charges: Number(fd.get("charges")),
+      handlingFee: Number(fd.get("handlingFee")),
+    };
+    // Recompute total amount
+    const totalAmount = updates.charges + updates.handlingFee;
+
+    updateParcel.mutate({ parcelId, data: { ...updates, totalAmount } } as any, {
+      onSuccess: () => {
+        toast({ title: "Success", description: "Parcel updated successfully" });
+        queryClient.invalidateQueries({ queryKey: getGetParcelQueryKey(parcelId) });
+        setIsEditModalOpen(false);
+      },
+      onError: (err: any) => {
+        toast({ title: "Error", description: err.message || "Failed to update parcel", variant: "destructive" });
+      }
+    });
+  };
+
   return (
     <>
     <div className="max-w-3xl mx-auto space-y-6 print:hidden">
@@ -129,7 +162,11 @@ export default function ParcelDetail() {
             {parcel.currentStatus.replace(/_/g, " ")}
           </span>
         </div>
-
+        <div className="ml-auto">
+          <Button variant="outline" size="sm" onClick={() => setIsEditModalOpen(true)}>
+            <Edit className="w-4 h-4 mr-2" /> Edit Parcel
+          </Button>
+        </div>
       </div>
 
 
@@ -210,6 +247,52 @@ export default function ParcelDetail() {
         <Receipt parcel={parcel} />
       </div>
     </div>
+    
+    <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Parcel Details</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleEditSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Sender Name</Label>
+              <Input name="senderName" defaultValue={parcel.senderName} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Sender Phone</Label>
+              <Input name="senderPhone" defaultValue={parcel.senderPhone || ""} />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Sender Address</Label>
+              <Input name="senderAddress" defaultValue={parcel.senderAddress || ""} />
+            </div>
+            <div className="space-y-2">
+              <Label>Num Boxes</Label>
+              <Input type="number" name="numBoxes" defaultValue={parcel.numBoxes} min="1" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Weight (kg)</Label>
+              <Input type="number" step="0.01" name="weightKg" defaultValue={parcel.weightKg} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Charges</Label>
+              <Input type="number" step="0.01" name="charges" defaultValue={parcel.charges} required />
+            </div>
+            <div className="space-y-2">
+              <Label>Handling Fee</Label>
+              <Input type="number" step="0.01" name="handlingFee" defaultValue={parcel.handlingFee} required />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={updateParcel.isPending}>
+              {updateParcel.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }

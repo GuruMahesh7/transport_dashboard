@@ -113,6 +113,7 @@ export default function Reports() {
                   <tr className="bg-slate-100 border-b border-slate-300 font-mono uppercase text-[9px] text-slate-600">
                     <th className="border-r border-slate-300 px-2 py-1 text-left">AWB No.</th>
                     <th className="border-r border-slate-300 px-2 py-1 text-left">Sender</th>
+                    <th className="border-r border-slate-300 px-2 py-1 text-left">Destination</th>
                     <th className="border-r border-slate-300 px-2 py-1 text-left">Cargo Category</th>
                     <th className="border-r border-slate-300 px-2 py-1 text-center">Boxes</th>
                     <th className="border-r border-slate-300 px-2 py-1 text-center">Wt (kg)</th>
@@ -129,6 +130,12 @@ export default function Reports() {
                         <p className="font-semibold text-slate-850">{p.senderName}</p>
                         <p className="text-[9px] text-slate-500">{p.senderPhone}</p>
                       </td>
+                      <td className="border-r border-slate-300 px-2 py-1">
+                        <p className="font-semibold text-slate-850">{(p as any).destinationHubName || p.destinationHubCode}</p>
+                        {(p as any).destinationHubType === "Sub Branch" && (
+                          <p className="text-[9px] text-blue-700">Sub: {(p as any).destinationParentHubName}</p>
+                        )}
+                      </td>
                       <td className="border-r border-slate-300 px-2 py-1 text-slate-700">
                         {p.items?.length > 0 ? p.items.map((i: any) => i.itemName || "Item").join(', ') : (p.itemName || "Item")}
                       </td>
@@ -141,7 +148,7 @@ export default function Reports() {
                   ))}
                   {filteredParcels.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-4 italic text-slate-500">No parcels match this search query.</td>
+                      <td colSpan={9} className="text-center py-4 italic text-slate-500">No parcels match this search query.</td>
                     </tr>
                   )}
                 </tbody>
@@ -185,6 +192,7 @@ export default function Reports() {
                     <tr>
                       <th className="px-4 py-3 text-left font-medium">AWB</th>
                       <th className="px-4 py-3 text-left font-medium">Sender</th>
+                      <th className="px-4 py-3 text-left font-medium">Destination</th>
                       <th className="px-4 py-3 text-left font-medium">Item Type</th>
                       <th className="px-4 py-3 text-left font-medium">Boxes</th>
                       <th className="px-4 py-3 text-left font-medium">Weight (kg)</th>
@@ -200,6 +208,15 @@ export default function Reports() {
                         <td className="px-4 py-3">
                           <div>{p.senderName}</div>
                           <div className="text-xs text-muted-foreground">{p.senderPhone}</div>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          <div>{(p as any).destinationHubName || p.destinationHubCode}</div>
+                          {(p as any).destinationHubType === "Sub Branch" && (
+                            <div className="text-blue-600 mt-1">Sub-branch of {(p as any).destinationParentHubName}</div>
+                          )}
+                          {(p as any).destinationHubType === "Main Branch" && (
+                            <div className="text-slate-500 mt-1">Main Branch</div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {p.items?.length > 0 ? p.items.map((i: any) => i.itemName || "Item").join(', ') : (p.itemName || "Item")}
@@ -242,9 +259,18 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {hubWise.map(h => (
+                {hubWise.map((h: any) => (
                   <tr key={h.hubId} data-testid={`row-hub-report-${h.hubId}`}>
-                    <td className="px-4 py-3"><p className="font-medium">{h.hubName}</p><p className="text-xs text-muted-foreground">{h.hubCode}</p></td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{h.hubName}</p>
+                      <p className="text-xs text-muted-foreground">{h.hubCode}</p>
+                      {h.type === "Sub Branch" && (
+                        <p className="text-xs text-blue-600 mt-1">Sub-branch of {h.parentHubName}</p>
+                      )}
+                      {h.type === "Main Branch" && (
+                        <p className="text-xs text-slate-500 mt-1">Main Branch</p>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right">{h.bookings}</td>
                     <td className="px-4 py-3 text-right text-green-700">{h.deliveries}</td>
                     <td className="px-4 py-3 text-right text-amber-700">{h.pending}</td>

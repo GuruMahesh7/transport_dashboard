@@ -157,7 +157,13 @@ export default function Parcels() {
                     </td>
 
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      {p.destinationHubCode}
+                      <div>{(p as any).destinationHubName || p.destinationHubCode}</div>
+                      {(p as any).destinationHubType === "Sub Branch" && (
+                        <div className="text-blue-600 mt-1">Sub-branch of {(p as any).destinationParentHubName}</div>
+                      )}
+                      {(p as any).destinationHubType === "Main Branch" && (
+                        <div className="text-slate-500 mt-1">Main Branch</div>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[p.currentStatus] ?? "bg-gray-100 text-gray-800"}`}>
@@ -185,7 +191,12 @@ export default function Parcels() {
                     </span>
                   </div>
                   <div className="text-sm">{p.senderName}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Destination: {p.destinationHubCode} · {new Date(p.createdAt).toLocaleDateString()}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Destination: {(p as any).destinationHubName || p.destinationHubCode} 
+                    {(p as any).destinationHubType === "Sub Branch" && ` (Sub-branch of ${(p as any).destinationParentHubName})`}
+                    {' · '}
+                    {new Date(p.createdAt).toLocaleDateString()}
+                  </div>
                 </CardContent>
               </Card>
             ))}
