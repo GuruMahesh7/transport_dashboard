@@ -19,6 +19,21 @@ export default function Reports() {
 
   const { data: dailyParcelsData, isLoading: dailyParcelsLoading } = useListParcels({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }, { query: { queryKey: getListParcelsQueryKey({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }) } });
   const dailyParcels = dailyParcelsData?.parcels ?? [];
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredParcels = dailyParcels.filter((p: any) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    
+    const awb = (p.awbNumber || "").toLowerCase();
+    const sender = (p.senderName || "").toLowerCase();
+    const phone = (p.senderPhone || "").toLowerCase();
+    const itemsText = p.items?.length > 0 
+      ? p.items.map((i: any) => i.itemName || "").join(" ").toLowerCase()
+      : (p.itemName || "").toLowerCase();
+
+    return awb.includes(query) || sender.includes(query) || phone.includes(query) || itemsText.includes(query);
+  });
 
   const handleExport = () => {
     window.print();
@@ -92,7 +107,7 @@ export default function Reports() {
 
             {/* Manifest Table */}
             <div className="space-y-2">
-              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">Parcels Booked Summary ({dailyParcels.length})</h3>
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">Parcels Booked Summary ({filteredParcels.length})</h3>
               <table className="w-full text-[11px] border-collapse border border-slate-300">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-300 font-mono uppercase text-[9px] text-slate-600">
@@ -107,7 +122,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {dailyParcels.map((p: any) => (
+                  {filteredParcels.map((p: any) => (
                     <tr key={p.id}>
                       <td className="border-r border-slate-300 px-2 py-1 font-mono font-bold text-slate-900">{p.awbNumber}</td>
                       <td className="border-r border-slate-300 px-2 py-1">
@@ -124,9 +139,9 @@ export default function Reports() {
                       <td className="px-2 py-1 text-right font-mono font-bold text-slate-950">₹{Number(p.totalAmount || p.charges).toFixed(2)}</td>
                     </tr>
                   ))}
-                  {dailyParcels.length === 0 && (
+                  {filteredParcels.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-4 italic text-slate-500">No parcels booked on this date.</td>
+                      <td colSpan={8} className="text-center py-4 italic text-slate-500">No parcels match this search query.</td>
                     </tr>
                   )}
                 </tbody>
@@ -146,11 +161,23 @@ export default function Reports() {
 
           {/* Screen-Only Table Layout */}
           <div className="mt-8 print:hidden">
-            <h3 className="text-lg font-bold mb-4">Parcels Booked ({dailyParcels.length})</h3>
+            <div className="space-y-2 mb-4">
+              <h3 className="text-lg font-bold">Parcels Booked ({filteredParcels.length})</h3>
+              <Input
+                placeholder="Search by AWB, Sender, Phone or Item..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full sm:w-80 h-9 text-xs"
+              />
+            </div>
             {dailyParcelsLoading ? (
               <div className="text-muted-foreground">Loading parcels...</div>
             ) : dailyParcels.length === 0 ? (
               <div className="text-muted-foreground">No parcels booked on this date.</div>
+            ) : filteredParcels.length === 0 ? (
+              <div className="text-muted-foreground py-4 text-center border rounded-md bg-muted/10 font-medium">
+                No parcels matching your search query.
+              </div>
             ) : (
               <div className="rounded-md border overflow-hidden">
                 <table className="w-full text-sm">
@@ -167,7 +194,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {dailyParcels.map((p: any) => (
+                    {filteredParcels.map((p: any) => (
                       <tr key={p.id}>
                         <td className="px-4 py-3 font-mono font-medium">{p.awbNumber}</td>
                         <td className="px-4 py-3">

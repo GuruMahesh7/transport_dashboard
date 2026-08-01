@@ -10,10 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Check, ChevronDown, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const schema = z.object({
   senderName: z.string().min(1, "Required"),
@@ -60,6 +63,8 @@ export default function ParcelNew() {
     { id: "1", itemId: 0, numBoxes: 1, weightKg: 1, remarks: "", charges: 0, handlingFee: 0 }
   ]);
   const [activeTabId, setActiveTabId] = useState<string>("1");
+  const [itemComboOpen, setItemComboOpen] = useState(false);
+  const [subBranchComboOpen, setSubBranchComboOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -237,19 +242,94 @@ export default function ParcelNew() {
               </div>
               <div className="flex flex-col gap-1">
                 <Label htmlFor="destinationHubId" className="text-xs font-semibold">Sub Branch</Label>
-                <Select disabled={!selectedMainBranchId} value={String(watch("destinationHubId") || "")} onValueChange={v => setValue("destinationHubId", parseInt(v))}>
-                  <SelectTrigger id="destinationHubId" className="h-8 font-medium bg-background text-xs">
-                    <SelectValue placeholder="Select Sub Branch (Optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {selectedMainBranchId && <SelectItem value={String(selectedMainBranchId)}>None (Direct to Main)</SelectItem>}
-                    {activeHubs.filter(h => h.parentHubId === selectedMainBranchId).map(h => (
-                      <SelectItem key={h.id} value={String(h.id)}>
-                        {h.hubName} ({h.hubCode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={subBranchComboOpen} onOpenChange={setSubBranchComboOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="destinationHubId"
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={subBranchComboOpen}
+                      disabled={!selectedMainBranchId}
+                      className="h-8 font-normal bg-background text-xs justify-between px-3 border border-input shadow-sm w-full"
+                    >
+                      {watch("destinationHubId") ? (
+                        watch("destinationHubId") === selectedMainBranchId ? (
+                          "None (Direct to Main)"
+                        ) : (
+                          activeHubs.find(h => h.id === watch("destinationHubId"))
+                            ? `${activeHubs.find(h => h.id === watch("destinationHubId"))?.hubName} (${activeHubs.find(h => h.id === watch("destinationHubId"))?.hubCode})`
+                            : "Select Sub Branch (Optional)"
+                        )
+                      ) : (
+                        <span className="text-muted-foreground">Select Sub Branch (Optional)</span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        {!!selectedMainBranchId && watch("destinationHubId") !== selectedMainBranchId && watch("destinationHubId") !== undefined && (
+                          <X
+                            className="h-3.5 w-3.5 opacity-50 hover:opacity-100 cursor-pointer shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedMainBranchId) {
+                                setValue("destinationHubId", selectedMainBranchId);
+                              }
+                            }}
+                          />
+                        )}
+                        <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search sub branch..." className="h-8 text-xs" />
+                      <CommandList>
+                        <CommandEmpty className="py-2 text-center text-xs">No sub branches found.</CommandEmpty>
+                        <CommandGroup>
+                          {selectedMainBranchId && (
+                            <CommandItem
+                              value="None (Direct to Main)"
+                              onSelect={() => {
+                                setValue("destinationHubId", selectedMainBranchId);
+                                setSubBranchComboOpen(false);
+                              }}
+                              className="text-xs font-semibold"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-3.5 w-3.5",
+                                  watch("destinationHubId") === selectedMainBranchId ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              None (Direct to Main)
+                            </CommandItem>
+                          )}
+                          {activeHubs
+                            .filter(h => h.parentHubId === selectedMainBranchId)
+                            .map(h => (
+                              <CommandItem
+                                key={h.id}
+                                value={h.hubName}
+                                onSelect={() => {
+                                  const nextVal = watch("destinationHubId") === h.id ? (selectedMainBranchId || 0) : h.id;
+                                  setValue("destinationHubId", nextVal);
+                                  setSubBranchComboOpen(false);
+                                }}
+                                className="text-xs"
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-3.5 w-3.5",
+                                    watch("destinationHubId") === h.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {h.hubName} ({h.hubCode})
+                              </CommandItem>
+                            ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 {errors.destinationHubId && <p className="text-destructive text-[10px] font-semibold">Required</p>}
               </div>
               <div className="flex flex-col gap-1">
@@ -371,21 +451,67 @@ export default function ParcelNew() {
                 <div className="space-y-0.5">
                   <Label htmlFor="itemTypeSelect" className="text-[11px] font-semibold">Item Type</Label>
                   <div className="flex gap-2">
-                    <Select 
-                      value={activeTab.itemId ? String(activeTab.itemId) : ""} 
-                      onValueChange={v => updateActiveTab("itemId", parseInt(v))}
-                    >
-                      <SelectTrigger id="itemTypeSelect" className="h-8 text-xs bg-background flex-1">
-                        <SelectValue placeholder="Select Item" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {items.map(i => (
-                          <SelectItem key={i.id} value={String(i.id)}>
-                            {i.name} (₹{i.defaultPrice}/u)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={itemComboOpen} onOpenChange={setItemComboOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="itemTypeSelect"
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={itemComboOpen}
+                          className="h-8 text-xs bg-background flex-1 justify-between font-normal px-3 border border-input shadow-sm"
+                        >
+                          {activeTab.itemId ? (
+                            items.find(i => i.id === activeTab.itemId)
+                              ? `${items.find(i => i.id === activeTab.itemId)?.name} (₹${items.find(i => i.id === activeTab.itemId)?.defaultPrice}/u)`
+                              : "Select Item"
+                          ) : (
+                            <span className="text-muted-foreground">Select Item</span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            {!!activeTab.itemId && (
+                              <X
+                                className="h-3.5 w-3.5 opacity-50 hover:opacity-100 cursor-pointer shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateActiveTab("itemId", 0);
+                                }}
+                              />
+                            )}
+                            <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search item type..." className="h-8 text-xs" />
+                          <CommandList>
+                            <CommandEmpty className="py-2 text-center text-xs">No items found.</CommandEmpty>
+                            <CommandGroup>
+                              {items.map(i => (
+                                <CommandItem
+                                  key={i.id}
+                                  value={i.name}
+                                  onSelect={() => {
+                                    const nextVal = activeTab.itemId === i.id ? 0 : i.id;
+                                    updateActiveTab("itemId", nextVal);
+                                    setItemComboOpen(false);
+                                  }}
+                                  className="text-xs"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-3.5 w-3.5",
+                                      activeTab.itemId === i.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {i.name} (₹{i.defaultPrice}/u)
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     
                     <Button 
                       variant="outline" 
@@ -479,22 +605,22 @@ export default function ParcelNew() {
 
       {/* Item Addition Dialog - Styled and Placed at Root */}
       <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <h2 className="text-base font-bold">Add Custom Cargo Category</h2>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="newItemName" className="text-xs">Item Name</Label>
-              <Input id="newItemName" className="h-8 text-xs" value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="e.g. Special Tech Parts" />
+          <div className="grid grid-cols-3 gap-3 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="newItemName" className="text-xs font-semibold">Item Name</Label>
+              <Input id="newItemName" className="h-8 text-xs bg-background" value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="e.g. Special Tech Parts" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="newItemPrice" className="text-xs">Base Price (₹)</Label>
-              <Input id="newItemPrice" className="h-8 text-xs" type="number" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} placeholder="Price per unit box" />
+            <div className="space-y-1">
+              <Label htmlFor="newItemPrice" className="text-xs font-semibold">Base Price (₹)</Label>
+              <Input id="newItemPrice" className="h-8 text-xs bg-background" type="number" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} placeholder="Price per unit box" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="newItemHandling" className="text-xs">Handling Fee (₹)</Label>
-              <Input id="newItemHandling" className="h-8 text-xs" type="number" value={newItemHandling} onChange={e => setNewItemHandling(e.target.value)} placeholder="Handling fee per box" />
+            <div className="space-y-1">
+              <Label htmlFor="newItemHandling" className="text-xs font-semibold">Handling Fee (₹)</Label>
+              <Input id="newItemHandling" className="h-8 text-xs bg-background" type="number" value={newItemHandling} onChange={e => setNewItemHandling(e.target.value)} placeholder="Handling fee per box" />
             </div>
           </div>
           <DialogFooter className="gap-2">
