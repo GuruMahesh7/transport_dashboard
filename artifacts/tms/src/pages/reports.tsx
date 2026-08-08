@@ -145,7 +145,7 @@ export default function Reports() {
           <div className="hidden print:block border-2 border-red-600 p-6 rounded-md space-y-4 font-sans bg-white text-black">
             {/* Business Header */}
             <div className="text-center border-b-2 border-red-600 pb-3">
-              <h1 className="text-2xl font-black tracking-wider uppercase text-slate-900">Laxmi Narayana Transport</h1>
+              <h1 className="text-2xl font-black tracking-wider uppercase text-slate-900">New Balaji Lorry Service</h1>
               <p className="text-xs font-semibold tracking-wide text-slate-600">Daily Manifest & Revenue Statement</p>
               <div className="mt-2 text-[10px] font-mono text-slate-500 flex justify-between px-2">
                 <span>Date: {dailyDate}</span>

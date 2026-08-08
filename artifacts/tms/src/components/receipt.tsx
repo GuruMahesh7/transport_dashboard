@@ -15,25 +15,30 @@ export function Receipt({ parcel }: { parcel: any }) {
         .receipt-container .text-black { color: #000000 !important; }
         .receipt-container .bg-white { background-color: #ffffff !important; }
       `}</style>
-      {/* Header */}
-      <div className="border border-black flex flex-col">
-        <div className="flex justify-between items-center border-b border-black p-2">
-          <div className="flex flex-col items-center justify-center p-2 w-24 h-24">
-            <div className="border-2 border-green-600 rounded-full w-14 h-14 flex items-center justify-center mb-1 bg-white">
-              <span className="font-bold text-xl text-black">LNT</span>
+        {/* Header */}
+        <div className="border border-black flex flex-col">
+          <div className="flex justify-between items-start border-b border-black p-2 text-indigo-900" style={{ color: '#312e81' }}>
+            <div className="text-left text-[14px] font-bold italic font-serif w-1/4 pt-2">
+              Daily Parcel Service
             </div>
-            <span className="text-[12px] font-bold text-red-600 whitespace-nowrap">LAXMI NARAYANA</span>
+            <div className="text-center flex-1 px-2 flex flex-col items-center">
+               <div className="w-12 h-12 flex items-center justify-center mb-1">
+                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-indigo-900" style={{ color: '#312e81' }}>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+                    <circle cx="12" cy="12" r="5" />
+                 </svg>
+               </div>
+              <h1 className="text-[22px] font-bold tracking-wider mb-1" style={{ color: '#312e81', fontFamily: 'serif' }}>NEW BALAJI LORRY SERVICE</h1>
+              <div className="border border-indigo-900 rounded-full px-4 py-0.5 text-[14px] font-bold mb-1 tracking-wide" style={{ borderColor: '#312e81' }}>
+                HYDERABAD TO BHONGIR, MOTHKUR
+              </div>
+              <p className="text-[13px] font-semibold tracking-wide">Maharaj Gunj, Hyderabad-500012.</p>
+              <p className="text-[15px] font-bold mt-1 tracking-wide">This Receipt Valid for 3 Days Only</p>
+            </div>
+            <div className="text-right text-[15px] font-bold w-1/4 pt-2">
+              Cell : 9966763333
+            </div>
           </div>
-          <div className="text-center flex-1 px-4">
-            <h1 className="text-2xl font-bold text-red-600 mb-1">LAXMI NARAYANA TRANSPORT</h1>
-            <p className="text-xs font-bold text-black">BOOKING OFFICE : 15-2-449/2, Opp, Aryasamaj Building, Kishan Gunj, Hyd., Ph : 9886193455, 9392832855</p>
-            <p className="text-xs font-bold text-black mt-1">H.O. : D.No. 6-1-111, Near Kaman, Siddipet. Cell : 9490200408</p>
-          </div>
-          <div className="text-right text-xs text-red-600 font-bold min-w-[160px] flex flex-col justify-between h-full py-2">
-            <p className="text-[10px]">GSTIN. 36AMNPB0778R1ZD</p>
-            <p className="text-xl mt-4">Cell : 9392832855</p>
-          </div>
-        </div>
 
         {/* Details Section */}
         <div className="grid grid-cols-2 border-b border-black">
@@ -102,12 +107,9 @@ export function Receipt({ parcel }: { parcel: any }) {
           )}
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-10">
-            <div className="text-center font-bold" style={{ color: '#6366f1' }}>
-              <div className="text-6xl border-4 border-indigo-500 rounded-full inline-flex items-center justify-center w-32 h-32 mb-2">20</div>
-              <div className="text-xl mb-2">YEARS</div>
-              <div className="text-4xl italic">Laxmi Narayana</div>
-              <div className="text-3xl italic mb-2">Transport</div>
-              <div className="text-lg italic">20 years experience</div>
+            <div className="text-center font-bold" style={{ color: '#312e81' }}>
+              <div className="text-5xl italic font-serif">New Balaji</div>
+              <div className="text-4xl italic font-serif mb-2">Lorry Service</div>
             </div>
           </div>
         </div>
