@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Download, Printer } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select";
 export default function Reports() {
   const [dailyDate, setDailyDate] = useState(new Date().toISOString().split("T")[0]);
   const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split("T")[0]; });
@@ -105,13 +105,22 @@ export default function Reports() {
             <Input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="w-40" data-testid="input-daily-date" />
             <Label className="ml-4">Hub</Label>
             <Select value={selectedHubId} onValueChange={setSelectedHubId}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-64">
                 <SelectValue placeholder="All Hubs" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Hubs</SelectItem>
-                {hubs.map((h: any) => (
-                  <SelectItem key={h.id} value={h.id.toString()}>{h.hubName}</SelectItem>
+                {hubs.filter((h: any) => !h.parentHubId).map((mainHub: any) => (
+                  <SelectGroup key={mainHub.id}>
+                    <SelectItem value={mainHub.id.toString()} className="font-semibold">
+                      {mainHub.hubName}
+                    </SelectItem>
+                    {hubs.filter((h: any) => h.parentHubId === mainHub.id).map((subHub: any) => (
+                      <SelectItem key={subHub.id} value={subHub.id.toString()} className="pl-6 text-muted-foreground">
+                        ↳ {subHub.hubName}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>

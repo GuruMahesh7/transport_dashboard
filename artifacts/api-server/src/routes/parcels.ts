@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, parcelsTable, hubsTable, staffTable, itemsTable, parcelItemsTable } from "@workspace/db";
-import { eq, and, gte, lte, desc, sql, or, ilike } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql, or, ilike, inArray } from "drizzle-orm";
 import { requireAuth } from "../lib/auth";
 import { generateAwbNumber } from "../lib/awb";
 import { createAuditLog } from "../lib/audit";
@@ -100,7 +100,14 @@ router.get("/parcels", requireAuth, async (req, res) => {
 
   const conditions: any[] = [];
   if (status) conditions.push(eq(parcelsTable.currentStatus, status as string));
-  if (hubId) conditions.push(eq(parcelsTable.destinationHubId, parseInt(hubId as string)));
+  if (hubId) {
+    const targetHubId = parseInt(hubId as string);
+    const relatedHubs = await db.select({ id: hubsTable.id }).from(hubsTable).where(or(eq(hubsTable.id, targetHubId), eq(hubsTable.parentHubId, targetHubId)));
+    const hubIds = relatedHubs.map(h => h.id);
+    if (hubIds.length > 0) {
+      conditions.push(inArray(parcelsTable.destinationHubId, hubIds));
+    }
+  }
   if (dateFrom) conditions.push(gte(parcelsTable.createdAt, new Date(dateFrom as string)));
   if (dateTo) {
     const d = new Date(dateTo as string);
