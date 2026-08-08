@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { eq } from "drizzle-orm";
 import { db } from "@workspace/db";
 import { itemsTable } from "@workspace/db/schema";
 import { z } from "zod/v4";
@@ -39,6 +40,54 @@ router.post("/", async (req, res) => {
       return;
     }
     res.status(400).json({ error: error.message || "Failed to create item" });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const schema = z.object({
+      name: z.string(),
+      defaultPrice: z.number(),
+      defaultHandlingFee: z.number().optional().default(0)
+    });
+    const body = schema.parse(req.body);
+
+    const [item] = await db
+      .update(itemsTable)
+      .set({
+        name: body.name,
+        defaultPrice: body.defaultPrice.toString(),
+        defaultHandlingFee: body.defaultHandlingFee.toString()
+      })
+      .where(eq(itemsTable.id, id))
+      .returning();
+
+    if (!item) {
+      res.status(404).json({ error: "Item not found" });
+      return;
+    }
+    res.json(item);
+  } catch (error: any) {
+    if (error.code === '23505') {
+      res.status(400).json({ error: "Item with this name already exists" });
+      return;
+    }
+    res.status(400).json({ error: error.message || "Failed to update item" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [item] = await db.delete(itemsTable).where(eq(itemsTable.id, id)).returning();
+    if (!item) {
+      res.status(404).json({ error: "Item not found" });
+      return;
+    }
+    res.status(204).end();
+  } catch (error: any) {
+    res.status(400).json({ error: "Cannot delete item. It may be referenced by parcels." });
   }
 });
 

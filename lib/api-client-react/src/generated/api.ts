@@ -1261,6 +1261,148 @@ export const useCreateItem = <TError = ErrorType<unknown>,
       return useMutation(getCreateItemMutationOptions(options));
     }
 
+export const getUpdateItemUrl = (itemId: number,) => {
+
+
+
+
+  return `/api/items/${itemId}`
+}
+
+/**
+ * @summary Update an item
+ */
+export const updateItem = async (itemId: number,
+    itemInput: ItemInput, options?: RequestInit): Promise<Item> => {
+
+  return customFetch<Item>(getUpdateItemUrl(itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      itemInput,)
+  }
+);}
+
+
+
+
+export const getUpdateItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: BodyType<ItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: BodyType<ItemInput>}, TContext> => {
+
+const mutationKey = ['updateItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateItem>>, {itemId: number;data: BodyType<ItemInput>}> = (props) => {
+          const {itemId,data} = props ?? {};
+
+          return  updateItem(itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateItem>>>
+    export type UpdateItemMutationBody = BodyType<ItemInput>
+    export type UpdateItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an item
+ */
+export const useUpdateItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateItem>>, TError,{itemId: number;data: BodyType<ItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateItem>>,
+        TError,
+        {itemId: number;data: BodyType<ItemInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateItemMutationOptions(options));
+    }
+
+export const getDeleteItemUrl = (itemId: number,) => {
+
+
+
+
+  return `/api/items/${itemId}`
+}
+
+/**
+ * @summary Delete an item
+ */
+export const deleteItem = async (itemId: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteItemUrl(itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext> => {
+
+const mutationKey = ['deleteItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteItem>>, {itemId: number}> = (props) => {
+          const {itemId} = props ?? {};
+
+          return  deleteItem(itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItem>>>
+
+    export type DeleteItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an item
+ */
+export const useDeleteItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteItem>>,
+        TError,
+        {itemId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteItemMutationOptions(options));
+    }
+
 export const getListParcelsUrl = (params?: ListParcelsParams,) => {
   const normalizedParams = new URLSearchParams();
 

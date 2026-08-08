@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useCreateParcel, useListHubs, getListParcelsQueryKey, useListItems, useCreateItem, getListItemsQueryKey } from "@workspace/api-client-react";
+import { useCreateParcel, useListHubs, getListParcelsQueryKey, useListItems, useCreateItem, useUpdateItem, useDeleteItem, getListItemsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Plus, Check, ChevronDown, X } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Check, ChevronDown, X, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -42,11 +42,15 @@ export default function ParcelNew() {
   
   const createParcel = useCreateParcel();
   const createItem = useCreateItem();
-
+  const updateItem = useUpdateItem();
+  const deleteItem = useDeleteItem();
+  
+  const [newItemDialogOpen, setNewItemDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<{ id: number; name: string; defaultPrice: number; defaultHandlingFee: number } | null>(null);
   const [newItemName, setNewItemName] = useState("");
-  const [newItemPrice, setNewItemPrice] = useState("");
-  const [newItemHandling, setNewItemHandling] = useState("");
-  const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [newItemPrice, setNewItemPrice] = useState<any>("");
+  const [newItemHandling, setNewItemHandling] = useState<any>("");
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedMainBranchId, setSelectedMainBranchId] = useState<number | null>(null);
 
@@ -165,24 +169,6 @@ export default function ParcelNew() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleAddItem = () => {
-    if (!newItemName || !newItemPrice) return;
-    createItem.mutate({ data: { name: newItemName, defaultPrice: parseFloat(newItemPrice), defaultHandlingFee: parseFloat(newItemHandling || "0") } }, {
-      onSuccess: (newItem) => {
-        queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
-        updateActiveTab("itemId", newItem.id);
-        setIsAddItemOpen(false);
-        setNewItemName("");
-        setNewItemPrice("");
-        setNewItemHandling("");
-        toast({ title: "Item Added", description: `${newItem.name} has been added.` });
-      },
-      onError: (err: any) => {
-        toast({ title: "Error", description: err.response?.data?.error || "Failed to add item", variant: "destructive" });
-      }
-    });
   };
 
   const activeHubs = hubs.filter(h => h.isActive);
@@ -496,15 +482,54 @@ export default function ParcelNew() {
                                     updateActiveTab("itemId", nextVal);
                                     setItemComboOpen(false);
                                   }}
-                                  className="text-xs"
+                                  className="text-xs group flex justify-between items-center pr-2"
                                 >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-3.5 w-3.5",
-                                      activeTab.itemId === i.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {i.name} (₹{i.defaultPrice}/u)
+                                  <div className="flex items-center">
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-3.5 w-3.5",
+                                        activeTab.itemId === i.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {i.name} (₹{i.defaultPrice}/u)
+                                  </div>
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div
+                                      className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingItem({
+                                          id: i.id,
+                                          name: i.name,
+                                          defaultPrice: Number(i.defaultPrice),
+                                          defaultHandlingFee: Number(i.defaultHandlingFee)
+                                        });
+                                        setNewItemName(i.name);
+                                        setNewItemPrice(i.defaultPrice);
+                                        setNewItemHandling(i.defaultHandlingFee);
+                                        setNewItemDialogOpen(true);
+                                      }}
+                                    >
+                                      <Pencil className="w-3 h-3 text-slate-500 hover:text-blue-600" />
+                                    </div>
+                                    <div
+                                      className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded cursor-pointer"
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        if (confirm(`Are you sure you want to delete ${i.name}?`)) {
+                                          try {
+                                            await deleteItem.mutateAsync({ itemId: i.id });
+                                            queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
+                                            toast({ title: "Success", description: "Item deleted." });
+                                          } catch (err: any) {
+                                            toast({ title: "Error", description: err.message || "Failed to delete item.", variant: "destructive" });
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="w-3 h-3 text-slate-500 hover:text-red-600" />
+                                    </div>
+                                  </div>
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -518,7 +543,7 @@ export default function ParcelNew() {
                       type="button" 
                       size="icon" 
                       className="h-8 w-8 shrink-0 border-slate-200 dark:border-slate-800"
-                      onClick={() => setIsAddItemOpen(true)}
+                      onClick={() => setNewItemDialogOpen(true)}
                     >
                       <Plus className="w-3.5 h-3.5"/>
                     </Button>
@@ -603,30 +628,83 @@ export default function ParcelNew() {
         </Card>
       </form>
 
-      {/* Item Addition Dialog - Styled and Placed at Root */}
-      <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
-        <DialogContent className="sm:max-w-2xl">
+      {/* Add / Edit Item Dialog */}
+      <Dialog open={newItemDialogOpen} onOpenChange={(open) => {
+        setNewItemDialogOpen(open);
+        if (!open) {
+          setEditingItem(null);
+          setNewItemName("");
+          setNewItemPrice("");
+          setNewItemHandling("");
+        }
+      }}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <h2 className="text-base font-bold">Add Custom Cargo Category</h2>
+            <DialogTitle>{editingItem ? "Edit Item" : "Create New Item"}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-3 gap-3 py-2">
-            <div className="space-y-1">
-              <Label htmlFor="newItemName" className="text-xs font-semibold">Item Name</Label>
-              <Input id="newItemName" className="h-8 text-xs bg-background" value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="e.g. Special Tech Parts" />
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right text-xs">Name</Label>
+              <Input id="name" value={newItemName} onChange={e => setNewItemName(e.target.value)} className="col-span-3 text-xs" />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="newItemPrice" className="text-xs font-semibold">Base Price (₹)</Label>
-              <Input id="newItemPrice" className="h-8 text-xs bg-background" type="number" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} placeholder="Price per unit box" />
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right text-xs">Unit Price (₹)</Label>
+              <Input id="price" type="number" value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} className="col-span-3 text-xs" />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="newItemHandling" className="text-xs font-semibold">Handling Fee (₹)</Label>
-              <Input id="newItemHandling" className="h-8 text-xs bg-background" type="number" value={newItemHandling} onChange={e => setNewItemHandling(e.target.value)} placeholder="Handling fee per box" />
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="handling" className="text-right text-xs">Handling (₹)</Label>
+              <Input id="handling" type="number" value={newItemHandling} onChange={e => setNewItemHandling(e.target.value)} className="col-span-3 text-xs" />
             </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setIsAddItemOpen(false)}>Cancel</Button>
-            <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleAddItem} disabled={createItem.isPending || !newItemName || !newItemPrice}>
-              Add Item
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setNewItemDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={isCreatingItem || !newItemName || !newItemPrice}
+              onClick={async () => {
+                setIsCreatingItem(true);
+                try {
+                  if (editingItem) {
+                    await updateItem.mutateAsync({
+                      itemId: editingItem.id,
+                      data: {
+                        name: newItemName,
+                        defaultPrice: Number(newItemPrice),
+                        defaultHandlingFee: Number(newItemHandling || 0)
+                      }
+                    });
+                    toast({ title: "Success", description: "Item updated successfully." });
+                  } else {
+                    const res = await createItem.mutateAsync({
+                      data: {
+                        name: newItemName,
+                        defaultPrice: Number(newItemPrice),
+                        defaultHandlingFee: Number(newItemHandling || 0)
+                      }
+                    });
+                    toast({ title: "Success", description: "Item created successfully." });
+                  }
+                  
+                  await queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
+                  setNewItemDialogOpen(false);
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.response?.data?.error || "Failed to save item",
+                    variant: "destructive"
+                  });
+                } finally {
+                  setIsCreatingItem(false);
+                }
+              }}
+            >
+              {isCreatingItem ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

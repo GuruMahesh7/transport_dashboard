@@ -270,6 +270,36 @@ export const CreateItemBody = zod.object({
 
 
 /**
+ * @summary Update an item
+ */
+export const UpdateItemParams = zod.object({
+  "itemId": zod.coerce.number()
+})
+
+export const UpdateItemBody = zod.object({
+  "name": zod.string(),
+  "defaultPrice": zod.number(),
+  "defaultHandlingFee": zod.number().optional()
+})
+
+export const UpdateItemResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "defaultPrice": zod.number(),
+  "defaultHandlingFee": zod.number(),
+  "createdAt": zod.coerce.date().optional()
+})
+
+
+/**
+ * @summary Delete an item
+ */
+export const DeleteItemParams = zod.object({
+  "itemId": zod.coerce.number()
+})
+
+
+/**
  * @summary List parcels
  */
 export const ListParcelsQueryParams = zod.object({
