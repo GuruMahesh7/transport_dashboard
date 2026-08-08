@@ -18,14 +18,17 @@ export default function Reports() {
   const { data: monthly = [] } = useGetMonthlyReport({ months: 6 }, { query: { queryKey: getGetMonthlyReportQueryKey({ months: 6 }) } });
 
   const { data: hubs = [] } = useListHubs();
-  const [selectedHubId, setSelectedHubId] = useState<string>("all");
+  const [hubId, setHubId] = useState<string>("ALL");
+  const [subHubId, setSubHubId] = useState<string>("ALL");
+
+  const activeHubId = (subHubId && subHubId !== "ALL") ? subHubId : ((hubId && hubId !== "ALL") ? hubId : undefined);
 
   const { data: dailyParcelsData, isLoading: dailyParcelsLoading } = useListParcels(
     { 
       dateFrom: dailyDate, 
       dateTo: dailyDate, 
       limit: 100, 
-      hubId: selectedHubId !== "all" ? parseInt(selectedHubId) : undefined 
+      hubId: activeHubId ? parseInt(activeHubId) : undefined 
     }, 
     { 
       query: { 
@@ -33,7 +36,7 @@ export default function Reports() {
           dateFrom: dailyDate, 
           dateTo: dailyDate, 
           limit: 100,
-          hubId: selectedHubId !== "all" ? parseInt(selectedHubId) : undefined 
+          hubId: activeHubId ? parseInt(activeHubId) : undefined 
         }) 
       } 
     }
@@ -104,24 +107,28 @@ export default function Reports() {
             <Label>Date</Label>
             <Input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="w-40" data-testid="input-daily-date" />
             <Label className="ml-4">Hub</Label>
-            <Select value={selectedHubId} onValueChange={setSelectedHubId}>
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="All Hubs" />
+            <Select value={hubId} onValueChange={s => { setHubId(s); setSubHubId("ALL"); }}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Main Branches" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Hubs</SelectItem>
-                {hubs.filter((h: any) => !h.parentHubId).map((mainHub: any) => (
-                  <SelectGroup key={mainHub.id}>
-                    <SelectItem value={mainHub.id.toString()} className="font-semibold">
-                      {mainHub.hubName}
-                    </SelectItem>
-                    {hubs.filter((h: any) => h.parentHubId === mainHub.id).map((subHub: any) => (
-                      <SelectItem key={subHub.id} value={subHub.id.toString()} className="pl-6 text-muted-foreground">
-                        ↳ {subHub.hubName}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
+                <SelectItem value="ALL">All Main Branches</SelectItem>
+                {hubs.filter((h: any) => !h.parentHubId).map((h: any) => (
+                  <SelectItem key={h.id} value={h.id.toString()}>{h.hubName}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+            <Select value={subHubId} onValueChange={setSubHubId}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Sub Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Sub Branches</SelectItem>
+                {hubs
+                  .filter((h: any) => h.parentHubId && (!hubId || hubId === "ALL" || h.parentHubId.toString() === hubId))
+                  .map((h: any) => (
+                    <SelectItem key={h.id} value={h.id.toString()}>{h.hubName}</SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -142,7 +149,7 @@ export default function Reports() {
               <p className="text-xs font-semibold tracking-wide text-slate-600">Daily Manifest & Revenue Statement</p>
               <div className="mt-2 text-[10px] font-mono text-slate-500 flex justify-between px-2">
                 <span>Date: {dailyDate}</span>
-                <span>Hub: {selectedHubId === "all" ? "All Hubs" : hubs.find((h: any) => h.id.toString() === selectedHubId)?.hubName || "Unknown"}</span>
+                <span>Hub: {activeHubId ? hubs.find((h: any) => h.id.toString() === activeHubId)?.hubName : "All Hubs"}</span>
                 <span>Generated: {new Date().toLocaleDateString("en-IN")}</span>
               </div>
             </div>
