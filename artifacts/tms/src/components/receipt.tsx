@@ -20,12 +20,12 @@ export function Receipt({ parcel }: { parcel: any }) {
         <div className="flex justify-between items-center border-b border-black p-2">
           <div className="flex flex-col items-center justify-center p-2 w-24 h-24">
             <div className="border-2 border-green-600 rounded-full w-14 h-14 flex items-center justify-center mb-1 bg-white">
-              <span className="font-bold text-xl text-black">SSLS</span>
+              <span className="font-bold text-xl text-black">LNT</span>
             </div>
-            <span className="text-[12px] font-bold text-red-600 whitespace-nowrap">SSLS TRANSPORT</span>
+            <span className="text-[12px] font-bold text-red-600 whitespace-nowrap">LAXMI NARAYANA</span>
           </div>
           <div className="text-center flex-1 px-4">
-            <h1 className="text-2xl font-bold text-red-600 mb-1">SHIVA SHANKARA LORRY SERVICE</h1>
+            <h1 className="text-2xl font-bold text-red-600 mb-1">LAXMI NARAYANA TRANSPORT</h1>
             <p className="text-xs font-bold text-black">BOOKING OFFICE : 15-2-449/2, Opp, Aryasamaj Building, Kishan Gunj, Hyd., Ph : 9886193455, 9392832855</p>
             <p className="text-xs font-bold text-black mt-1">H.O. : D.No. 6-1-111, Near Kaman, Siddipet. Cell : 9490200408</p>
           </div>
@@ -105,8 +105,8 @@ export function Receipt({ parcel }: { parcel: any }) {
             <div className="text-center font-bold" style={{ color: '#6366f1' }}>
               <div className="text-6xl border-4 border-indigo-500 rounded-full inline-flex items-center justify-center w-32 h-32 mb-2">20</div>
               <div className="text-xl mb-2">YEARS</div>
-              <div className="text-4xl italic">Shiva Shankara</div>
-              <div className="text-3xl italic mb-2">Lorry Service</div>
+              <div className="text-4xl italic">Laxmi Narayana</div>
+              <div className="text-3xl italic mb-2">Transport</div>
               <div className="text-lg italic">20 years experience</div>
             </div>
           </div>
