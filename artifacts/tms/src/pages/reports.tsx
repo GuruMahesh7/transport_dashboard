@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetDailyReport, getGetDailyReportQueryKey, useGetHubWiseReport, getGetHubWiseReportQueryKey, useGetMonthlyReport, getGetMonthlyReportQueryKey, useListParcels, getListParcelsQueryKey } from "@workspace/api-client-react";
+import { useGetDailyReport, getGetDailyReportQueryKey, useGetHubWiseReport, getGetHubWiseReportQueryKey, useGetMonthlyReport, getGetMonthlyReportQueryKey, useListParcels, getListParcelsQueryKey, useListHubs } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Download, Printer } from "lucide-react";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 export default function Reports() {
   const [dailyDate, setDailyDate] = useState(new Date().toISOString().split("T")[0]);
   const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().split("T")[0]; });
@@ -17,7 +17,27 @@ export default function Reports() {
   const { data: hubWise = [] } = useGetHubWiseReport({ dateFrom, dateTo }, { query: { queryKey: getGetHubWiseReportQueryKey({ dateFrom, dateTo }) } });
   const { data: monthly = [] } = useGetMonthlyReport({ months: 6 }, { query: { queryKey: getGetMonthlyReportQueryKey({ months: 6 }) } });
 
-  const { data: dailyParcelsData, isLoading: dailyParcelsLoading } = useListParcels({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }, { query: { queryKey: getListParcelsQueryKey({ dateFrom: dailyDate, dateTo: dailyDate, limit: 100 }) } });
+  const { data: hubs = [] } = useListHubs();
+  const [selectedHubId, setSelectedHubId] = useState<string>("all");
+
+  const { data: dailyParcelsData, isLoading: dailyParcelsLoading } = useListParcels(
+    { 
+      dateFrom: dailyDate, 
+      dateTo: dailyDate, 
+      limit: 100, 
+      hubId: selectedHubId !== "all" ? parseInt(selectedHubId) : undefined 
+    }, 
+    { 
+      query: { 
+        queryKey: getListParcelsQueryKey({ 
+          dateFrom: dailyDate, 
+          dateTo: dailyDate, 
+          limit: 100,
+          hubId: selectedHubId !== "all" ? parseInt(selectedHubId) : undefined 
+        }) 
+      } 
+    }
+  );
   const dailyParcels = dailyParcelsData?.parcels ?? [];
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -83,6 +103,18 @@ export default function Reports() {
           <div className="flex items-center gap-3 print:hidden">
             <Label>Date</Label>
             <Input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="w-40" data-testid="input-daily-date" />
+            <Label className="ml-4">Hub</Label>
+            <Select value={selectedHubId} onValueChange={setSelectedHubId}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Hubs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Hubs</SelectItem>
+                {hubs.map((h: any) => (
+                  <SelectItem key={h.id} value={h.id.toString()}>{h.hubName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {daily && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:hidden">
@@ -101,6 +133,7 @@ export default function Reports() {
               <p className="text-xs font-semibold tracking-wide text-slate-600">Daily Manifest & Revenue Statement</p>
               <div className="mt-2 text-[10px] font-mono text-slate-500 flex justify-between px-2">
                 <span>Date: {dailyDate}</span>
+                <span>Hub: {selectedHubId === "all" ? "All Hubs" : hubs.find((h: any) => h.id.toString() === selectedHubId)?.hubName || "Unknown"}</span>
                 <span>Generated: {new Date().toLocaleDateString("en-IN")}</span>
               </div>
             </div>
